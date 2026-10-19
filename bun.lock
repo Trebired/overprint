@@ -1,0 +1,42 @@
+{
+  "lockfileVersion": 1,
+  "configVersion": 1,
+  "workspaces": {
+    "": {
+      "name": "@trebired/overprint",
+      "devDependencies": {
+        "@package/logger-adapter": "npm:@trebired/logger-adapter@^0.8.2",
+        "@trebired/code-discipline": "^7.2.3",
+        "@trebired/configs": "^0.4.0",
+        "@types/bun": "^1.3.14",
+        "@types/node": "^24.13.3",
+        "typescript": "^6.0.3",
+      },
+    },
+  },
+  "packages": {
+    "@package/logger": ["@trebired/logger@3.0.3", "", { "dependencies": { "@package/result": "npm:@trebired/result@^1.2.8", "@trebired/utils": "^0.9.0" }, "peerDependencies": { "react": ">=18" }, "optionalPeers": ["react"] }, "sha512-xYLM+tVaoqT/uvYtFRJLLpH8IxTtflyL7vx2uv3sproLAsXjIag4k41J477Rln8jOOyINDPxsFg5zzpBNVzycA=="],
+
+    "@package/logger-adapter": ["@trebired/logger-adapter@0.8.2", "", { "dependencies": { "@package/logger": "npm:@trebired/logger@^3.0.3", "@trebired/utils": "^0.9.3" }, "peerDependencies": { "@trebired/logger": "^3.0.3" }, "optionalPeers": ["@trebired/logger"], "bin": { "logger-adapter-bridge": "dist/bridge/server.js" } }, "sha512-HD4p4PW9Ww5YAWAk99nZa7cXciI3T9nmG62Cebj+Aygfogckon2LMEr8FUYI08EaxxuladUWtuD5JBrX2Zzlfg=="],
+
+    "@package/result": ["@trebired/result@1.4.1", "", { "dependencies": { "@package/logger-adapter": "npm:@trebired/logger-adapter@^0.6.0", "@trebired/utils": "^0.9.3" } }, "sha512-OLOouHM+Na3m4+FyKE3vkiJyKDtkcFDcmr0IIrhh+PldryYwHiZPs0EK5gwexpggneDsygEDg38uHopFavBTCQ=="],
+
+    "@trebired/code-discipline": ["@trebired/code-discipline@7.2.3", "", { "dependencies": { "@package/logger": "npm:@trebired/logger@^3.0.0", "@package/result": "npm:@trebired/result@^1.2.8", "@trebired/utils": "^0.9.3", "typescript": "^6.0.3" }, "bin": { "code-discipline": "dist/cli.js" } }, "sha512-ftUJ0RenZgazegd1cAmtyeYQ2Db6lLgpNa30X1gFbsODBekrF5rZXbR4jj8rXzjzYBSN+FV/i86KeaEJvSntyQ=="],
+
+    "@trebired/configs": ["@trebired/configs@0.4.0", "", {}, "sha512-y4GhZMVZqip2LcGqFzvm+ebVr0smuC1cYrU8uJvPlz9Lx7Qo4CJGRr9A5G+RYamlGA/WbBXjujw7mDZALBtwjQ=="],
+
+    "@trebired/utils": ["@trebired/utils@0.9.6", "", {}, "sha512-1IreVMoizUZ3RVMKSA97tUOoq5AM8SiwNYpe1lgZkE+8KhSb46xucNac9hsYPLsIVM8sddf3fjkoJQiwIjOQag=="],
+
+    "@types/bun": ["@types/bun@1.4.3", "", { "dependencies": { "bun-types": "1.4.3" } }, "sha512-N67Pqy8JXbAY/j0tNraS3V5mubGvc6rrrNDmDCtZLlFzccbUJPDb0tvgUBC5q4m8ybkP93Jcn1QB+RYQ6PvBhw=="],
+
+    "@types/node": ["@types/node@24.19.2", "", { "dependencies": { "undici-types": ">=7.24.0 <7.24.7" } }, "sha512-93d49wCWJkCyN87MxLpNN6KXPCwFw7bVUg79mGUV1OS40JGWwVCr8n61DXCSqz7CV6/VfPkb7xec7uP2M+QHWQ=="],
+
+    "bun-types": ["bun-types@1.4.3", "", { "dependencies": { "@types/node": "*", "undici-types": "*" } }, "sha512-tinRJNGOmUN+tEAsn2y2e942n9JHRHR42iUYzDH75NmhJqVBokGSQkkfSFdNWwsANIdrK6ACH9t01M452YyTwg=="],
+
+    "typescript": ["typescript@6.0.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw=="],
+
+    "undici-types": ["undici-types@7.24.6", "", {}, "sha512-WRNW+sJgj5OBN4/0JpHFqtqzhpbnV0GuB+OozA9gCL7a993SmU+1JBZCzLNxYsbMfIeDL+lTsphD5jN5N+n0zg=="],
+
+    "@package/result/@package/logger-adapter": ["@trebired/logger-adapter@0.6.0", "", { "dependencies": { "@package/logger": "npm:@trebired/logger@^3.0.0", "@trebired/utils": "^0.9.3" }, "peerDependencies": { "@trebired/logger": "^3.0.0" }, "optionalPeers": ["@trebired/logger"], "bin": { "logger-adapter-bridge": "dist/bridge/server.js" } }, "sha512-bS+bO7buwtcBYCNOVX1I1FaAOeDczPWXukmIjVh8ENpBB0CRYI6QzjgmU4TbpqrJx8PpbF85syT7ehnX3lIGYw=="],
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "author": "Miroslav Machynka (Trebired)",
+  "config": {
+    "organization": {
+      "displayName": "Trebired",
+      "name": "trebired",
+      "website": "https://trebired.com"
+    }
+  },
+  "name": "@trebired/overprint",
+  "version": "0.1.0",
+  "description": "Overprinted ink plates for the browser canvas in the style of risograph printing: halftone and dither screens, knockouts, misregistration, and per-drum separations, with the pixel work in Rust compiled to WebAssembly.",
+  "type": "module",
+  "private": false,
+  "license": "MIT",
+  "packageManager": "bun@1.3.12",
+  "engines": {
+    "bun": ">=1.0.0"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "bun run prepare:generated && rm -rf dist && tsc -p tsconfig.build.json && bun ./scripts/prepare-dist.mjs prepare-dist && bun run build:native",
+    "build:native": "bun ./scripts/build/native.mjs",
+    "postpack": "bun ./scripts/prepare-dist.mjs postpack",
+    "prepack": "bun run build && bun ./scripts/prepare-dist.mjs prepack",
+    "prepublishOnly": "bun run typecheck && bun run verify:native && bun run verify:overprint && bun run verify:pack",
+    "prepare:generated": "bun ./scripts/build/generated/tsconfig.mjs",
+    "typecheck": "bun run prepare:generated && tsc --noEmit",
+    "verify:native": "cargo test --quiet --manifest-path native/Cargo.toml",
+    "verify:pack": "bun ./scripts/verify/pack.mjs",
+    "verify:overprint": "bun ./scripts/verify/overprint.mjs"
+  },
+  "devDependencies": {
+    "@package/logger-adapter": "npm:@trebired/logger-adapter@^0.8.2",
+    "@trebired/code-discipline": "^7.2.3",
+    "@trebired/configs": "^0.4.0",
+    "@types/bun": "^1.3.14",
+    "@types/node": "^24.13.3",
+    "typescript": "^6.0.3"
+  },
+  "keywords": [
+    "overprint",
+    "risograph",
+    "halftone",
+    "dither",
+    "canvas",
+    "print",
+    "webassembly",
+    "rust"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Trebired/overprint"
+  },
+  "homepage": "https://github.com/Trebired/overprint#readme",
+  "bugs": {
+    "url": "https://github.com/Trebired/overprint/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

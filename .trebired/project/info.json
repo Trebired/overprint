@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "category": "package",
+  "subcategory": "web",
+  "status": "active",
+  "npm": "@trebired/overprint",
+  "description": {
+    "en": "Risograph-style ink plates, halftone and dither screens, and overprint for the browser canvas.",
+    "cs": "Tiskové desky ve stylu risografu, rastry, dithering a soutisk pro plátno v prohlížeči."
+  }
+}

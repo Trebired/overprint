@@ -1,0 +1,51 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "#06bk11an93m5": [
+        "../../logger/config.ts"
+      ],
+      "#0puy23mc0ztb": [
+        "../../../src/print/halftone.ts"
+      ],
+      "#26o43r8du5cu": [
+        "../../../scripts/verify/overprint.mjs"
+      ],
+      "#8vfq3l38ds71": [
+        "../../../src/print/print.ts"
+      ],
+      "#bmt6hmkh0q6p": [
+        "../../../src/pixels.ts"
+      ],
+      "#ce9m3mjr319o": [
+        "../../../src/print/surface.ts"
+      ],
+      "#dhqbuw36t2cs": [
+        "../../../src/native/kernels.ts"
+      ],
+      "#ejr1k9960x32": [
+        "../../../src/inks.ts"
+      ],
+      "#fo9icp4ajuzz": [
+        "../../../src/types.ts"
+      ],
+      "#mdad2a89hurp": [
+        "../../../scripts/build/generated/tsconfig.mjs"
+      ],
+      "#p5vir3hdc0co": [
+        "../../../scripts/prepare-dist.mjs"
+      ],
+      "#sjsiregq0kos": [
+        "../../../src/index.ts"
+      ],
+      "#wfw89100x7wb": [
+        "../../../scripts/build/native.mjs"
+      ],
+      "#wv429ostpfcf": [
+        "../../../scripts/verify/pack.mjs"
+      ],
+      "#xo1r6901liku": [
+        "../../../src/print/plate.ts"
+      ]
+    }
+  }
+}
