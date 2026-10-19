@@ -75,12 +75,14 @@ async function runConsumerSmokeTest(tarball) {
   await fs.writeFile(
     path.join(consumerDir, "smoke.mjs"),
     [
-      'import { coverage, dither, inks } from "@trebired/overprint";',
+      'import { coverage, dither, inks, renderPrint } from "@trebired/overprint";',
       "const data = new Uint8ClampedArray([0, 0, 0, 255, 255, 255, 255, 255]);",
       "const covered = coverage({ data, height: 1, width: 2 }, { ink: inks.teal });",
       'if (covered.data[3] !== 255 || covered.data[7] !== 0) throw new Error("bad coverage");',
       'const dotted = dither({ data, height: 1, width: 2 }, { mode: "atkinson" });',
       'if (dotted.data[3] !== 255 || dotted.data[7] !== 0) throw new Error("bad dither");',
+      'const markup = renderPrint({ plates: [{ art: { kind: "fill" }, ink: "blue", screen: { cell: 8, kind: "halftone" } }] });',
+      'if (!markup.includes("<svg") || !markup.includes("feColorMatrix")) throw new Error("bad print markup");',
       'console.log("consumer smoke test succeeded.");',
     ].join("\n"),
   );

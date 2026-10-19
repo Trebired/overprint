@@ -9,7 +9,7 @@
   },
   "name": "@trebired/overprint",
   "version": "0.1.0",
-  "description": "Overprinted ink plates for the browser canvas in the style of risograph printing: halftone and dither screens, knockouts, misregistration, and per-drum separations, with the pixel work in Rust compiled to WebAssembly.",
+  "description": "Risograph-style prints as layered vector SVG: one plate per ink, halftone and dither screens, knockouts, misregistration and motion, rendered as markup in Bun or as a React component, with the pixel work in Rust compiled to WebAssembly.",
   "type": "module",
   "private": false,
   "license": "MIT",
@@ -23,6 +23,10 @@
     ".": {
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
+    },
+    "./react": {
+      "import": "./dist/react/index.js",
+      "types": "./dist/react/index.d.ts"
     }
   },
   "files": [
@@ -43,12 +47,23 @@
     "verify:pack": "bun ./scripts/verify/pack.mjs",
     "verify:overprint": "bun ./scripts/verify/overprint.mjs"
   },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@package/logger-adapter": "npm:@trebired/logger-adapter@^0.8.2",
     "@trebired/code-discipline": "^7.2.3",
     "@trebired/configs": "^0.4.0",
     "@types/bun": "^1.3.14",
     "@types/node": "^24.13.3",
+    "@types/react": "19.2.14",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
     "typescript": "^6.0.3"
   },
   "keywords": [

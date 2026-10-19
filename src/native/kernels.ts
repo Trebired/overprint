@@ -3,7 +3,10 @@ import type { Pixels, Rgb } from "./../types.js";
 type Kernels = {
   coverage: (width: number, height: number) => void;
   dither: (width: number, height: number, mode: number, threshold: number) => void;
+  encode: (width: number, height: number, mode: number) => number;
+  field: (width: number, height: number, kind: number, a: number, b: number, c: number, d: number, low: number, high: number) => void;
   memory: WebAssembly.Memory;
+  output: () => number;
   release: () => void;
   reserve: (length: number) => number;
   separate: (width: number, height: number, channel: number) => void;
@@ -56,8 +59,31 @@ function runKernel(pixels: Pixels, ink: Rgb, work: (kernels: Kernels) => void): 
   return { data, height: pixels.height, width: pixels.width };
 }
 
+type FieldShape = { kind: number; range: readonly [number, number]; shape: readonly [number, number, number, number] };
+
+function fieldKernel(width: number, height: number, field: FieldShape): Pixels {
+  const native = kernels();
+  const length = width * height * 4;
+  const pointer = native.reserve(length);
+  const [a, b, c, d] = field.shape;
+  native.field(width, height, field.kind, a, b, c, d, field.range[0], field.range[1]);
+  const data = new Uint8ClampedArray(length);
+  data.set(new Uint8Array(native.memory.buffer, pointer, length));
+  return { data, height, width };
+}
+
+function encodeKernel(pixels: Pixels, mode: number): Uint8Array {
+  const native = kernels();
+  const length = pixels.width * pixels.height * 4;
+  const pointer = native.reserve(length);
+  new Uint8Array(native.memory.buffer, pointer, length).set(pixels.data.subarray(0, length));
+  const size = native.encode(pixels.width, pixels.height, mode);
+  return new Uint8Array(native.memory.buffer, native.output(), size).slice();
+}
+
 function releaseKernels() {
   ready?.release();
 }
 
-export { prepareKernels, releaseKernels, runKernel };
+export { encodeKernel, fieldKernel, prepareKernels, releaseKernels, runKernel };
+export type { FieldShape };

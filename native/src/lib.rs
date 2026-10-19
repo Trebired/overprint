@@ -1,5 +1,7 @@
 mod channel;
 mod dither;
+mod field;
+mod png;
 mod tone;
 
 use std::cell::RefCell;
@@ -35,6 +37,7 @@ pub extern "C" fn release() {
             pixels.shrink_to_fit();
     });
     dither::release();
+    png::release();
 }
 
 #[no_mangle]
@@ -59,4 +62,21 @@ pub extern "C" fn separate(width: usize, height: usize, channel: u32) {
     with_pixels(width * height * 4, |pixels| {
             channel::separate(pixels, channel)
     });
+}
+
+#[no_mangle]
+#[allow(clippy::too_many_arguments)]
+pub extern "C" fn field(width: usize, height: usize, kind: u32, a: f32, b: f32, c: f32, d: f32, low: f32, high: f32) {
+    let tone = field::Field { kind, range: [low, high], shape: [a, b, c, d] };
+    with_pixels(width * height * 4, |pixels| field::fill(pixels, width, height, &tone));
+}
+
+#[no_mangle]
+pub extern "C" fn encode(width: usize, height: usize, mode: u32) -> usize {
+    with_pixels(width * height * 4, |pixels| png::encode(pixels, width, height, mode))
+}
+
+#[no_mangle]
+pub extern "C" fn output() -> *const u8 {
+    png::output()
 }

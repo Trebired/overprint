@@ -1,8 +1,8 @@
 # @trebired/overprint
 
-Risograph-style printing for the browser canvas: one plate per ink, halftone and dither screens, knockouts, misregistered overprint, and per-drum separations, with the pixel work in Rust compiled to WebAssembly.
+Risograph-style prints as layered vector SVG: one plate per ink, halftone and dither screens, knockouts, misregistration and motion, rendered to markup in Bun or as a React component, with the pixel work in Rust compiled to WebAssembly.
 
-The package owns the print: turning a tone into ink coverage, screening it into dots or grain, cutting one plate out of another, and laying the plates over each other the way a stencil duplicator does. Callers own the artwork drawn onto each plate, the canvas the print lands on, the animation loop, and any motion or misregistration they want to change over time. The package does not own a render loop, a scene graph, an image loader, a colour picker, or a drawing API beyond the Canvas 2D context it hands to the caller.
+The package owns the print: turning a tone into ink, screening it into dots or grain, cutting one plate out of another, overprinting the plates the way a stencil duplicator does, and moving them once the page is live. Callers own the artwork each plate prints through, the inks, the element the print sits in and its size, and when it is rendered. The package does not own a canvas, a scene graph, an image loader, layout measurement, or any styling of the element around the print.
 
 ## Install
 
@@ -14,101 +14,139 @@ bun i @trebired/overprint
 
 ## Quick Start
 
-```ts
-import { createPrint } from "@trebired/overprint";
+```tsx
+import type { Print } from "@trebired/overprint";
+import { Overprint } from "@trebired/overprint/react";
 
-const canvas = document.querySelector("canvas")!;
-const print = createPrint({ height: canvas.height, width: canvas.width });
+const print: Print = {
+  plates: [
+    {
+      art: { d: "M0.98 0.5A0.48 0.48 0 1 1 0.02 0.5A0.48 0.48 0 1 1 0.98 0.5Z", kind: "path" },
+      ink: "fluorescentPink",
+      offset: [6, -4],
+      screen: { angle: 45, cells: 36, kind: "halftone" },
+      tone: { at: [0.5, 0.5], kind: "radial", reach: 0.6 },
+    },
+    {
+      art: { kind: "text", text: "PRINT" },
+      ink: "blue",
+      motion: { drift: 0.6, pull: 8 },
+      screen: { kind: "dither", mode: "atkinson" },
+      tone: { from: [0, 0.5], kind: "linear", to: [1, 0.5] },
+    },
+  ],
+};
 
-const pink = print.plate("fluorescentPink", { offset: [3, -2] });
-pink.screen((context, { width, height }) => {
-  const ramp = context.createLinearGradient(0, 0, width, 0);
-  ramp.addColorStop(0, "#000");
-  ramp.addColorStop(1, "#fff");
-  context.fillStyle = ramp;
-  context.fillRect(0, 0, width, height);
-}, { angle: 45, cell: 10, kind: "halftone", shape: "circle" });
-
-const blue = print.plate("blue");
-blue.draw((context) => {
-  context.font = "bold 180px sans-serif";
-  context.fillText("PRINT", 40, 220);
-});
-pink.knockout(blue);
-
-print.render(canvas.getContext("2d")!);
+export function Poster() {
+  return <Overprint print={print} style={{ inset: 0, position: "absolute" }} />;
+}
 ```
+
+The same print renders without React through `renderPrint(print, { id: "poster" })`, which returns the markup as a string.
 
 ## Concepts
 
 ### Print and Plates
 
-A `Print` is one sheet of paper with a fixed pixel size. Each `plate()` call adds one drum: a canvas the size of the print that holds a single ink. Plates are printed in the order they were added, and `render()` lays them over each other with `multiply`, so overlapping inks darken the way real ink does on paper. A print for a dark background takes `blend: "screen"`, which lightens instead.
+A `Print` is a stack of plates. Each plate is one ink printed through one piece of art, and each renders as its own `<svg>` layer absolutely positioned over the print's root element. Layers overprint with `mix-blend-mode: multiply`, so overlapping inks darken the way ink does on paper. `paper: "dark"` switches every layer to `screen` for a dark background.
 
-A plate stores coverage, not colour. Its canvas holds the ink colour everywhere and the amount of ink in the alpha channel. Anything drawn onto a plate becomes that ink, whatever colour it was drawn in.
+The print has no fixed size. Positions, boxes and tones are fractions of the root element, so the same markup fits any box the caller gives it. A plate's `offset` is in CSS pixels and is the plate's misregistration.
 
 ### Inks
 
-`inks` holds the standard risograph ink colours by name: `blue`, `fluorescentPink`, `yellow`, `teal`, `flatGold`, and the rest. `plate()` takes an ink name, a `#rgb` or `#rrggbb` string, or an `[r, g, b]` tuple. `inkOf()` resolves any of those to a tuple and throws on anything else.
+`inks` holds the standard risograph ink colours by name: `blue`, `fluorescentPink`, `yellow`, `teal`, `flatGold`, and the rest. A plate's `ink` is an ink name, a `#rgb` or `#rrggbb` string, or an `[r, g, b]` tuple. `inkOf()` resolves any of those and throws on anything else.
 
-### Drawing and Screening
+### Art
 
-`plate.draw(paint, { level })` runs `paint` against a clean Canvas 2D context and turns everything it covers into ink at `level` (0 to 1, default 1). Use it for solid shapes and type.
+Art is the shape a plate prints through. Anything drawn by the art becomes ink; its own colour is ignored.
 
-`plate.screen(source, screen)` turns a tone into ink. The source is an image, a canvas, a bitmap, or a function that paints the tone in plate coordinates. Dark means more ink, white means none, and transparent means none. The screen decides how the tone reaches the paper:
+| Art | Draws |
+| --- | --- |
+| `{ kind: "fill" }` | The whole print |
+| `{ kind: "path", d, viewBox, rule }` | Path data in its own view box, `[1, 1]` by default |
+| `{ kind: "image", href }` | An image, by its alpha |
+| `{ kind: "svg", markup, viewBox }` | Inline SVG children |
+| `{ kind: "text", text, x, y, anchor, size }` | One line of text in the root element's font |
+| `{ kind: "group", parts, rotate }` | Several arts, rotated together about the print's centre |
+
+Path, image and SVG art take a `box` (fractions of the print), a `fit` (`meet`, `slice` or `fill`), an `align`, and a `rotate` in degrees about the box centre.
+
+### Tone
+
+The tone says how much ink lands where. Darkness 1 is full ink, 0 is none.
+
+| Tone | Shape |
+| --- | --- |
+| `{ kind: "flat", level }` | One level everywhere |
+| `{ kind: "linear", from, to, range }` | From `range[0]` at `from` to `range[1]` at `to`, `[1, 0]` by default |
+| `{ kind: "radial", at, reach, range }` | From the centre `at` out to `reach` |
+| `{ kind: "image", href }` | An image's luminance, dark as ink |
+| `{ kind: "pixels", pixels }` | Decoded pixels, dark as ink |
+
+### Screens
+
+The screen decides how the tone reaches the paper.
 
 | Screen | Result |
 | --- | --- |
-| `{ kind: "solid" }` | Continuous coverage, one alpha level per pixel |
-| `{ kind: "halftone", cell, angle, shape, gain }` | A rotated grid of `circle`, `ellipse`, `square`, `line`, or `cross` dots, sized by the tone; `gain` scales every dot |
-| `{ kind: "dither", mode, threshold, scale }` | `atkinson`, `floyd-steinberg`, `bayer`, or `threshold` grain at `scale` of the plate resolution |
+| `{ kind: "solid" }` | Continuous ink, the tone as opacity |
+| `{ kind: "halftone", cell, cells, angle, dot, gain }` | A rotated grid of `circle`, `ellipse`, `square`, `line` or `cross` dots sized by the tone; `cell` is the pitch in CSS pixels, `cells` the count across the print |
+| `{ kind: "dither", mode: "bayer", grain }` | Ordered dither with `grain`-pixel cells |
+| `{ kind: "dither", mode: "threshold", threshold }` | Ink wherever the tone is darker than the threshold |
+| `{ kind: "dither", mode: "atkinson" \| "floyd-steinberg", grain, threshold }` | Error-diffusion grain |
+
+Halftone, ordered and threshold screens are pure vector: a pattern carries each cell's distance field, the tone carries the darkness, and one SVG filter thresholds the two into ink at the display's own resolution. They stay sharp at every zoom level and device pixel ratio, and cost a few hundred bytes of markup per plate.
+
+Error diffusion cannot be expressed as vector shapes. Those screens are computed by the Rust kernels at the print's `size` (`[480, 480]` CSS pixels by default) and embedded as a one-bit PNG that the browser scales with pixelated sampling, so the grain stays square and hard-edged.
 
 ### Knockouts
 
-`plate.knockout(other)` removes this plate's ink wherever `other` carries ink, so the paper shows through instead of the two inks mixing. A plate created with `{ hidden: true }` never renders and exists only to knock out other plates.
+`knockout: ["name"]` removes this plate's ink wherever the named plate's art draws, so the paper shows through instead of the inks mixing. `{ plate, spread }` grows the cut by `spread` CSS pixels. A plate with `hidden: true` never renders and exists only to be knocked out by.
 
-### Misregistration
+### Waves
 
-Every plate has an `offset`. `render()` draws each plate at its offset, or at whatever `shift(plate, index)` returns, so a caller can drift the drums apart over time without reprinting anything.
-
-### Separations
-
-`print.separations()` returns one black-on-white canvas per visible plate, with its ink and name. Each is the master a duplicator needs for that drum.
+`wave` ripples a plate along the horizontal axis like cloth: `amplitude` in CSS pixels, `length` as a fraction of the print width, `period` in seconds, and `along` the span where the ripple grows from nothing to full. `shade` adds moving shadow bands at that opacity. The ripple runs inside the SVG and needs no script; under `prefers-reduced-motion` it stops and the shading hides.
 
 ## Runtime
 
+### Rendering
+
+`renderPrint()` and `printTree()` are pure. They need no DOM, no canvas and no browser, so a Bun server or a static build renders the finished print into its HTML and the art is visible on the first paint. The same input always produces the same markup.
+
+Every element id inside a print starts with the `id` option, so two prints on one page never collide. The React component derives it from `useId()`, which keeps server and client markup identical through hydration.
+
+### Motion
+
+`animatePrint(root, print)` moves each plate by its `motion`: `drift` sways it slowly, `pull` shifts it toward the pointer by that many CSS pixels. It only writes `transform` on the plate layers, pauses while the print is off screen, does nothing under `prefers-reduced-motion`, and returns a function that stops it. `<Overprint>` calls it after mount; pass `motion={false}` to keep the print still.
+
 ### Pixel Kernels
 
-Coverage, dithering, and channel separation run in a WebAssembly module compiled from the Rust crate in `native/`. The module is about 22 KB and ships inside `dist/native/kernels.js`, so consumers need no loader, no extra file, and no bundler configuration.
+Error diffusion, tone sampling, channel separation and PNG encoding run in a WebAssembly module compiled from the Rust crate in `native/`. The module is about 30 KB and ships inside `dist/native/kernels.js`, so consumers need no loader, extra file, or bundler configuration. It starts synchronously the first time a kernel runs; `await prepareKernels()` compiles it ahead of time instead, and `releaseKernels()` returns its working buffers.
 
-The module starts synchronously the first time a kernel runs. Call `await prepareKernels()` early to compile it off the critical path instead, which also covers engines that refuse synchronous compilation. `releaseKernels()` returns the module's working buffers to the allocator once printing is done.
-
-### Pixel Functions
-
-`coverage()`, `dither()`, and `separate()` work on plain `{ data, width, height }` pixel objects, which includes `ImageData`, without a canvas. They return new pixels and leave the input untouched. They run in Bun as well as in a browser.
-
-### Surfaces
-
-Plates allocate `<canvas>` elements when a document exists and `OffscreenCanvas` otherwise. Pass `surface: (width, height) => canvas` to `createPrint()` to supply a different canvas implementation. `print.dispose()` releases every plate canvas.
+`coverage()`, `dither()` and `separate()` work on plain `{ data, width, height }` pixels, `ImageData` included, and return new pixels. `separate()` splits an image into `red`, `green`, `blue`, `cyan`, `magenta`, `yellow` or `black` coverage, ready to feed a plate as a `pixels` tone. `encodePng()` and `pngDataUri()` turn pixels into a PNG.
 
 ## Public API
 
-Prints: `createPrint`, `Print`, `Plate`.
+Rendering: `renderPrint`, `printTree`, `toMarkup`.
 
-Pixels: `coverage`, `dither`, `separate`.
+React (`@trebired/overprint/react`): `Overprint`.
+
+Motion: `animatePrint`.
 
 Inks: `inks`, `inkOf`.
 
+Pixels: `coverage`, `dither`, `separate`, `encodePng`, `pngDataUri`.
+
 Kernels: `prepareKernels`, `releaseKernels`.
 
-Types: `PrintOptions`, `PlateOptions`, `RenderOptions`, `Separation`, `Screen`, `SolidScreen`, `HalftoneScreen`, `DitherScreen`, `DitherMode`, `DotShape`, `Channel`, `Blend`, `InkInput`, `InkName`, `Rgb`, `Point`, `Pixels`, `Context2D`, `Surface`, `SurfaceFactory`, `ToneSize`, `ToneSource`.
+Types: `Print`, `Plate`, `Art`, `Tone`, `Screen`, `Knockout`, `Wave`, `PlateMotion`, `PrintOptions`, `AnimateOptions`, `OverprintNode`, `InkInput`, `InkName`, `Pixels`, and the member types of each union.
 
 ## What It Does Not Do
 
 This package does not:
 
-- Run an animation loop or schedule frames.
-- Load images, fonts, or SVG; sources arrive already decoded.
-- Read or write files, or encode PNG or PDF output.
+- Measure the page; every position is a fraction of the root element.
+- Load, decode or fetch images or fonts; image art and image tones are URLs the browser loads.
+- Position, size or style the root element.
+- Export print-ready files or talk to a printer or a duplicator.
 - Match the colour of any physical ink exactly; ink values are screen approximations.
-- Talk to a printer or a duplicator.

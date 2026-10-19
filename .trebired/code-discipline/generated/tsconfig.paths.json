@@ -4,29 +4,44 @@
       "#06bk11an93m5": [
         "../../logger/config.ts"
       ],
-      "#0puy23mc0ztb": [
-        "../../../src/print/halftone.ts"
+      "#20ins765q947": [
+        "../../../src/svg/tone.ts"
       ],
       "#26o43r8du5cu": [
         "../../../scripts/verify/overprint.mjs"
       ],
-      "#8vfq3l38ds71": [
-        "../../../src/print/print.ts"
+      "#2r2obajcrpq8": [
+        "../../../src/svg/screen.ts"
+      ],
+      "#4sypdl6c2rxc": [
+        "../../../src/svg/bayer.ts"
+      ],
+      "#bfv96slj4ruw": [
+        "../../../src/svg/raster.ts"
       ],
       "#bmt6hmkh0q6p": [
         "../../../src/pixels.ts"
       ],
-      "#ce9m3mjr319o": [
-        "../../../src/print/surface.ts"
-      ],
       "#dhqbuw36t2cs": [
         "../../../src/native/kernels.ts"
+      ],
+      "#e0tee2w8b0lk": [
+        "../../../src/svg/print.ts"
       ],
       "#ejr1k9960x32": [
         "../../../src/inks.ts"
       ],
       "#fo9icp4ajuzz": [
         "../../../src/types.ts"
+      ],
+      "#ipe52aaxkudl": [
+        "../../../src/svg/node.ts"
+      ],
+      "#khgg0f9hdj80": [
+        "../../../src/motion/animate.ts"
+      ],
+      "#kw43qaes4las": [
+        "../../../src/svg/wave.ts"
       ],
       "#mdad2a89hurp": [
         "../../../scripts/build/generated/tsconfig.mjs"
@@ -43,8 +58,14 @@
       "#wv429ostpfcf": [
         "../../../scripts/verify/pack.mjs"
       ],
-      "#xo1r6901liku": [
-        "../../../src/print/plate.ts"
+      "#x1pmtsrchta4": [
+        "../../../src/react/index.ts"
+      ],
+      "#yri3ilb0ml0q": [
+        "../../../src/svg/art.ts"
+      ],
+      "#z6q86mrf6kvc": [
+        "../../../src/svg/plate.ts"
       ]
     }
   }

@@ -83,15 +83,75 @@ function verifySeparation() {
   check("red channel reads intensity", overprint.separate(solid([255, 0, 0, 255]), "red").data[3] === 255);
 }
 
-function verifyPrintWithoutCanvas() {
-  const print = overprint.createPrint({ height: 10, width: 10 });
-  let message = "";
-  try {
-    print.plate("blue");
-  } catch (error) {
-    message = String(error.message);
-  }
-  check("a print without a canvas names the surface option", message.includes("surface factory"), message);
+const SUN = "M0.98 0.5A0.48 0.48 0 1 1 0.02 0.5A0.48 0.48 0 1 1 0.98 0.5Z";
+
+const PRINT = {
+  plates: [
+    {
+      art: { d: SUN, kind: "path" },
+      ink: "blue",
+      name: "disc",
+      screen: { angle: 30, cell: 9, kind: "halftone" },
+      tone: { at: [0.5, 0.5], kind: "radial", reach: 0.6 },
+    },
+    { art: { kind: "fill" }, ink: "fluorescentPink", knockout: [{ plate: "disc", spread: 6 }], screen: { kind: "dither", mode: "atkinson" } },
+    { art: { kind: "text", text: "<b>&" }, hidden: true, ink: "yellow", name: "mask" },
+    { art: { kind: "fill" }, ink: "teal", screen: { grain: 2, kind: "dither", mode: "bayer" }, wave: { shade: 0.5 } },
+  ],
+  size: [200, 120],
+};
+
+const count = (text, pattern) => (text.match(pattern) || []).length;
+
+function verifyMarkup() {
+  const markup = overprint.renderPrint(PRINT, { className: "print", id: "demo" });
+  check("markup opens with the root span", markup.startsWith('<span aria-hidden="true" class="print"'), markup.slice(0, 60));
+  check("one svg layer per visible plate", count(markup, /<svg aria-hidden/gu) === 3, String(count(markup, /<svg aria-hidden/gu)));
+  check("ids carry the caller prefix", markup.includes('id="demo-0m"') && !markup.includes('id="overprint'));
+  check("halftone thresholds into the ink", markup.includes("feColorMatrix") && markup.includes("0 0 0 0 0 0 0 0 0 0.471 0 0 0 0 0.749"));
+  check("knockout spreads the named plate", markup.includes('operator="dilate" radius="6"'));
+  check("error diffusion embeds a PNG mask", markup.includes("data:image/png;base64,"));
+  check("bayer dither stays vector", count(markup, /<rect fill="#[0-9a-f]{2}0000"/gu) === 64);
+  check("waves displace and respect reduced motion", markup.includes("feDisplacementMap") && markup.includes("prefers-reduced-motion"));
+  check("rendering is deterministic", markup === overprint.renderPrint(PRINT, { className: "print", id: "demo" }));
+  const text = overprint.renderPrint({ plates: [{ art: { kind: "text", text: "<b>&" }, ink: "black" }] }, { id: "t" });
+  check("text art is escaped", text.includes("&lt;b&gt;&amp;") && !text.includes("<b>&"));
+}
+
+function verifyRefusals() {
+  const refused = (work) => {
+    try {
+      work();
+      return false;
+    } catch {
+      return true;
+    }
+  };
+  const unknown = { plates: [{ art: { kind: "fill" }, ink: "blue", knockout: ["nope"] }] };
+  check("an unknown knockout is refused", refused(() => overprint.renderPrint(unknown)));
+  check("an id that cannot start an element id is refused", refused(() => overprint.renderPrint(PRINT, { id: "9x" })));
+  check("an image tone cannot feed error diffusion", refused(() => overprint.renderPrint({
+          plates: [{ art: { kind: "fill" }, ink: "blue", screen: { kind: "dither", mode: "atkinson" }, tone: { href: "/a.png", kind: "image" } }],
+  })));
+}
+
+function verifyPng() {
+  const bytes = overprint.encodePng(solid([0, 120, 191, 255], 9, 3), { mask: true });
+  const view = new DataView(bytes.buffer, bytes.byteOffset);
+  check("png carries its signature", bytes[0] === 137 && bytes[1] === 80 && bytes[2] === 78 && bytes[3] === 71);
+  check("png header records the size", view.getUint32(16) === 9 && view.getUint32(20) === 3);
+  check("mask png is one bit per pixel", bytes[24] === 1 && bytes[25] === 3);
+}
+
+async function verifyReact() {
+  const { createElement } = await import("react");
+  const { renderToString } = await import("react-dom/server");
+  const { Overprint } = await import(path.join(rootDir, "dist", "react", "index.js"));
+  const markup = renderToString(createElement(Overprint, { className: "print", print: PRINT }));
+  check("react renders one svg layer per visible plate", count(markup, /<svg aria-hidden/gu) === 3, String(count(markup, /<svg aria-hidden/gu)));
+  const kebab = markup.includes("color-interpolation-filters") && markup.includes("stop-color");
+  check("react keeps svg attribute names", kebab && !markup.includes("stopColor"));
+  check("react inlines the root isolation", markup.includes("isolation:isolate"));
 }
 
 await overprint.prepareKernels();
@@ -99,7 +159,10 @@ verifyInks();
 verifyCoverage();
 verifyDither();
 verifySeparation();
-verifyPrintWithoutCanvas();
+verifyMarkup();
+verifyRefusals();
+verifyPng();
+await verifyReact();
 
 if (failures.length > 0) {
   for (const failure of failures) log.error("verify.overprint", failure);

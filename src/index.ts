@@ -1,26 +1,45 @@
 export { inkOf, inks } from "./inks.js";
+export { animatePrint } from "./motion/animate.js";
 export { prepareKernels, releaseKernels } from "./native/kernels.js";
-export { coverage, dither, separate } from "./pixels.js";
-export { Plate } from "./print/plate.js";
-export { createPrint, Print } from "./print/print.js";
+export { coverage, dither, encodePng, pngDataUri, separate } from "./pixels.js";
+export { toMarkup } from "./svg/node.js";
+export { printTree, renderPrint } from "./svg/print.js";
 export type { InkInput, InkName } from "./inks.js";
-export type { PlateOptions } from "./print/plate.js";
-export type { PrintOptions, RenderOptions, Separation } from "./print/print.js";
+export type { AnimateOptions } from "./motion/animate.js";
+export type { OverprintNode } from "./svg/node.js";
+export type { PrintOptions } from "./svg/print.js";
 export type {
-  Blend,
+  Align,
+  Art,
+  Box,
   Channel,
-  Context2D,
   DitherMode,
   DitherScreen,
   DotShape,
+  FillArt,
+  Fit,
+  FlatTone,
+  GroupArt,
   HalftoneScreen,
+  ImageArt,
+  ImageTone,
+  Knockout,
+  LinearTone,
+  Paper,
+  PathArt,
+  PixelTone,
   Pixels,
+  Placement,
+  Plate,
+  PlateMotion,
   Point,
+  Print,
+  RadialTone,
   Rgb,
   Screen,
   SolidScreen,
-  Surface,
-  SurfaceFactory,
-  ToneSize,
-  ToneSource,
+  SvgArt,
+  TextArt,
+  Tone,
+  Wave,
 } from "./types.js";
