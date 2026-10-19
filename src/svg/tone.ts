@@ -1,12 +1,14 @@
 import { pngDataUri } from "./../pixels.js";
-import { el, round, type OverprintNode } from "./node.js";
+import { el, percent, round, type OverprintNode } from "./node.js";
 import type { Point, Rgb, Tone } from "./../types.js";
 
 type ToneMode = "channel" | "ink";
 
-type TonePaint = { defs: OverprintNode[]; layer: (attrs: Record<string, string>) => OverprintNode };
+type TonePaint = { defs: OverprintNode[]; extent: Record<string, string>; layer: (attrs: Record<string, string>) => OverprintNode };
 
 const FULL = { height: "100%", width: "100%" };
+
+const WIDE = { height: "200%", width: "200%", x: "-50%", y: "-50%" };
 
 function hex(ink: Rgb): string {
   return `#${ink.map((channel) => channel.toString(16).padStart(2, "0")).join("")}`;
@@ -39,10 +41,12 @@ function gradient(id: string, tone: Tone, mode: ToneMode, ink: Rgb): OverprintNo
   const [start, end]: Point = tone.kind === "linear" || tone.kind === "radial" ? tone.range || [1, 0] : [1, 0];
   const stops = [stop(0, start, mode, ink), stop(1, end, mode, ink)];
   if (tone.kind === "linear") {
-    return el("linearGradient", { id, x1: tone.from [0], x2: tone.to[0], y1: tone.from [1], y2: tone.to[1] }, stops);
+    const ends = { x1: percent(tone.from [0]), x2: percent(tone.to[0]), y1: percent(tone.from [1]), y2: percent(tone.to[1]) };
+    return el("linearGradient", { ...ends, gradientUnits: "userSpaceOnUse", id }, stops);
   }
   if (tone.kind === "radial") {
-    return el("radialGradient", { cx: tone.at[0], cy: tone.at[1], fx: tone.at[0], fy: tone.at[1], id, r: tone.reach }, stops);
+    const [cx, cy] = [percent(tone.at[0]), percent(tone.at[1])];
+    return el("radialGradient", { cx, cy, fx: cx, fy: cy, gradientUnits: "userSpaceOnUse", id, r: percent(tone.reach) }, stops);
   }
   return null;
 }
@@ -51,18 +55,19 @@ function tonePaint(id: string, tone: Tone, mode: ToneMode, ink: Rgb): TonePaint 
   if (tone.kind === "flat") {
     const opacity = mode === "ink" ? String(round(Math.max(0, Math.min(1, tone.level)))) : undefined;
     const fill = flatPaint(tone.level, mode, ink);
-    return { defs: [], layer: (attrs) => el("rect", { ...FULL, ...attrs, fill, "fill-opacity": opacity }) };
+    return { defs: [], extent: WIDE, layer: (attrs) => el("rect", { ...WIDE, ...attrs, fill, "fill-opacity": opacity }) };
   }
   if (tone.kind === "image" || tone.kind === "pixels") {
     const href = tone.kind === "image" ? tone.href : pngDataUri(tone.pixels);
     const filter = imageFilter(id, mode, ink);
     return {
       defs: [filter],
+      extent: FULL,
       layer: (attrs) => el("image", { ...FULL, ...attrs, filter: `url(#${id})`, href, preserveAspectRatio: "none" }),
     };
   }
   const defs = [gradient(id, tone, mode, ink)].filter((node): node is OverprintNode => node !== null);
-  return { defs, layer: (attrs) => el("rect", { ...FULL, ...attrs, fill: `url(#${id})` }) };
+  return { defs, extent: WIDE, layer: (attrs) => el("rect", { ...WIDE, ...attrs, fill: `url(#${id})` }) };
 }
 
 export { hex, tonePaint };

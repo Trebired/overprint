@@ -113,6 +113,8 @@ function verifyMarkup() {
   check("error diffusion embeds a PNG mask", markup.includes("data:image/png;base64,"));
   check("bayer dither stays vector", count(markup, /<rect fill="#[0-9a-f]{2}0000"/gu) === 64);
   check("waves displace and respect reduced motion", markup.includes("feDisplacementMap") && markup.includes("prefers-reduced-motion"));
+  check("waves move the map with an animate on the filter image, which browsers re-render", markup.includes('<animate attributeName="x"'));
+  check("plate content reaches past the box so tilted art keeps its edges", markup.includes('height="200%" width="200%" x="-50%" y="-50%"'));
   check("rendering is deterministic", markup === overprint.renderPrint(PRINT, { className: "print", id: "demo" }));
   const text = overprint.renderPrint({ plates: [{ art: { kind: "text", text: "<b>&" }, ink: "black" }] }, { id: "t" });
   check("text art is escaped", text.includes("&lt;b&gt;&amp;") && !text.includes("<b>&"));

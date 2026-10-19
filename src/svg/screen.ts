@@ -10,8 +10,6 @@ type ScreenResult = { content: OverprintNode; defs: OverprintNode[] };
 
 type Metric = { axis: "x" | "y"; id: string; node: OverprintNode };
 
-const FULL = { height: "100%", width: "100%" };
-
 const BLEND = "mix-blend-mode:screen";
 
 function bars(id: string, channel: string, vertical: boolean): OverprintNode {
@@ -36,8 +34,8 @@ function dotGradient(id: string, dot: DotShape): OverprintNode[] {
 function tile(id: string, gradient: string, screen: HalftoneScreen): OverprintNode {
   const turn = `rotate(${round(-(screen.angle ?? 45))})`;
   if (screen.cells) {
-    const size = round(1 / screen.cells);
-    return el("pattern", { height: size, id, patternContentUnits: "objectBoundingBox", patternTransform: turn, width: size }, [
+    const size = `${round(100 / screen.cells)}%`;
+    return el("pattern", { height: size, id, patternTransform: turn, patternUnits: "userSpaceOnUse", width: size }, [
         el("rect", { fill: `url(#${gradient})`, height: size, width: size }),
     ]);
   }
@@ -57,7 +55,7 @@ function threshold(id: string, ink: Rgb, rows: string[], combine?: "in" | "over"
         values: `${color} ${row}`,
   }));
   if (combine) primitives.push(el("feComposite", { in: "m0", in2: "m1", operator: combine }));
-  const region = { height: "100%", width: "100%", x: 0, y: 0 };
+  const region = { height: "200%", width: "200%", x: "-50%", y: "-50%" };
   return el("filter", { ...region, "color-interpolation-filters": "sRGB", filterUnits: "userSpaceOnUse", id }, primitives);
 }
 
@@ -72,7 +70,7 @@ function halftone(context: ScreenContext, screen: HalftoneScreen, tone: Tone): S
   const [shade, full] = [round(-sharp * gain), round(sharp * gain)];
   const rows = metrics.map((metric) => (metric.axis === "x" ? `${-sharp} ${shade} 0 0 ${full}` : `0 ${shade} ${-sharp} 0 ${full}`));
   const filter = threshold(`${id}f`, ink, rows, metrics.length > 1 ? (dot === "square" ? "in" : "over") : undefined);
-  const layers = metrics.map((metric, index) => el("rect", { ...FULL, fill: `url(#${metric.id})`, style: index ? BLEND : undefined }));
+  const layers = metrics.map((metric, index) => el("rect", { ...paint.extent, fill: `url(#${metric.id})`, style: index ? BLEND : undefined }));
   return {
     content: el("g", { filter: `url(#${id}f)` }, [...layers, paint.layer({ style: BLEND })]),
     defs: [...dotGradient(`${id}g`, dot), ...metrics.map((metric) => metric.node), ...paint.defs, filter],
@@ -88,7 +86,7 @@ function ordered(context: ScreenContext, screen: DitherScreen, tone: Tone): Scre
     return { content: el("g", { filter: `url(#${id}f)` }, [paint.layer({})]), defs: [...paint.defs, filter] };
   }
   const filter = threshold(`${id}f`, ink, [`-255 -255 0 0 ${round(255 * (1 + shift))}`]);
-  const layers = [el("rect", { ...FULL, fill: `url(#${id}p)` }), paint.layer({ style: BLEND })];
+  const layers = [el("rect", { ...paint.extent, fill: `url(#${id}p)` }), paint.layer({ style: BLEND })];
   return { content: el("g", { filter: `url(#${id}f)` }, layers), defs: [bayer(`${id}p`, screen.grain ?? 2), ...paint.defs, filter] };
 }
 

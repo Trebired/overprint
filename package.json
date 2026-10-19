@@ -8,7 +8,7 @@
     }
   },
   "name": "@trebired/overprint",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Risograph-style prints as layered vector SVG: one plate per ink, halftone and dither screens, knockouts, misregistration and motion, rendered as markup in Bun or as a React component, with the pixel work in Rust compiled to WebAssembly.",
   "type": "module",
   "private": false,

@@ -105,7 +105,7 @@ Error diffusion cannot be expressed as vector shapes. Those screens are computed
 
 ### Waves
 
-`wave` ripples a plate along the horizontal axis like cloth: `amplitude` in CSS pixels, `length` as a fraction of the print width, `period` in seconds, and `along` the span where the ripple grows from nothing to full. `shade` adds moving shadow bands at that opacity. The ripple runs inside the SVG and needs no script; under `prefers-reduced-motion` it stops and the shading hides.
+`wave` ripples a plate along the horizontal axis like cloth: `amplitude` in CSS pixels, `length` as a fraction of the print width, `period` in seconds, and `along` the span where the ripple grows from nothing to full. `shade` adds moving shadow bands at that opacity. The ripple runs inside the SVG and needs no script; under `prefers-reduced-motion` it stops and the shading hides, and `animatePrint()` pauses it while the print is off screen.
 
 ## Runtime
 

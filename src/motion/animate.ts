@@ -21,6 +21,13 @@ function shiftOf(plate: Plate, at: { x: number; y: number }, time: number, optio
   return [x + at.x * pull + Math.sin(phase) * 2, y + at.y * pull + Math.cos(phase) * 1.5];
 }
 
+function pauseOffscreen(element: SVGElement, visible: boolean) {
+  const svg = element as SVGSVGElement;
+  if (typeof svg.pauseAnimations !== "function") return;
+  if (visible) svg.unpauseAnimations();
+  else svg.pauseAnimations();
+}
+
 function animatePrint(root: Element | null, print: Print, options: AnimateOptions = {}): () => void {
   if (!root || typeof window === "undefined" || typeof requestAnimationFrame === "undefined") return () => undefined;
   if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return () => undefined;
@@ -48,6 +55,7 @@ function animatePrint(root: Element | null, print: Print, options: AnimateOption
   };
   const watcher = typeof IntersectionObserver === "undefined" ? null : new IntersectionObserver((entries) => {
       visible = entries.some((entry) => entry.isIntersecting);
+      for (const { element } of layers) pauseOffscreen(element, visible);
       if (visible && !frame) frame = requestAnimationFrame(step);
   });
   watcher?.observe(root);
