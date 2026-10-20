@@ -1,6 +1,7 @@
 import { el, toMarkup, type OverprintNode } from "./node.js";
 import { plateNode } from "./plate.js";
 import { DEFAULT_SIZE } from "./raster.js";
+import { assertOverprint } from "./rules.js";
 import type { Plate, Print } from "./../types.js";
 
 type PrintOptions = { className?: string; id?: string; style?: string; tag?: string };
@@ -14,6 +15,7 @@ function idOf(value: string | undefined): string {
 }
 
 function plateNodes(print: Print, id: string): OverprintNode[] {
+  assertOverprint(print);
   const named = new Map<string, Plate>();
   print.plates.forEach((plate, index) => named.set(plate.name ?? String(index), plate));
   const context = { named, paper: print.paper || "light", size: print.size || DEFAULT_SIZE };

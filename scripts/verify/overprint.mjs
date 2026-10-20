@@ -116,7 +116,12 @@ function verifyMarkup() {
   check("waves move the map with an animate on the filter image, which browsers re-render", markup.includes('<animate attributeName="x"'));
   check("plate content reaches past the box so tilted art keeps its edges", markup.includes('height="200%" width="200%" x="-50%" y="-50%"'));
   check("rendering is deterministic", markup === overprint.renderPrint(PRINT, { className: "print", id: "demo" }));
-  const text = overprint.renderPrint({ plates: [{ art: { kind: "text", text: "<b>&" }, ink: "black" }] }, { id: "t" });
+  check(
+    "every plate prints ink with grain, mottling and rough edges, never flat",
+    count(markup, /<feTurbulence/gu) === 9 && count(markup, /result="rough"/gu) === 3
+  );
+  const words = { kind: "text", text: "<b>&" };
+  const text = overprint.renderPrint({ plates: [{ art: words, ink: "black" }, { art: words, ink: "blue", offset: [2, 1] }] }, { id: "t" });
   check("text art is escaped", text.includes("&lt;b&gt;&amp;") && !text.includes("<b>&"));
 }
 
@@ -129,12 +134,29 @@ function verifyRefusals() {
       return true;
     }
   };
-  const unknown = { plates: [{ art: { kind: "fill" }, ink: "blue", knockout: ["nope"] }] };
+  const unknown = { plates: [{ art: { kind: "fill" }, ink: "blue", knockout: ["nope"] }, { art: { kind: "fill" }, ink: "yellow" }] };
   check("an unknown knockout is refused", refused(() => overprint.renderPrint(unknown)));
   check("an id that cannot start an element id is refused", refused(() => overprint.renderPrint(PRINT, { id: "9x" })));
   check("an image tone cannot feed error diffusion", refused(() => overprint.renderPrint({
-          plates: [{ art: { kind: "fill" }, ink: "blue", screen: { kind: "dither", mode: "atkinson" }, tone: { href: "/a.png", kind: "image" } }],
+          plates: [
+            { art: { kind: "fill" }, ink: "blue", screen: { kind: "dither", mode: "atkinson" }, tone: { href: "/a.png", kind: "image" } },
+            { art: { kind: "fill" }, ink: "yellow" },
+          ],
   })));
+  verifyOverprintRule(refused);
+}
+
+function verifyOverprintRule(refused) {
+  const disc = { d: SUN, kind: "path" };
+  const lone = { plates: [{ art: disc, ink: "blue" }] };
+  check("a single plate is refused: one ink is not an overprint", refused(() => overprint.renderPrint(lone)));
+  check("a single plate cannot become a fill either", refused(() => overprint.printFill(lone)));
+  const apart = { plates: [{ art: disc, ink: "blue" }, { art: { d: "M0 0H1V1Z", kind: "path" }, ink: "yellow" }] };
+  check("plates that never print the same art are refused", refused(() => overprint.renderPrint(apart)));
+  const hiddenOnly = { plates: [{ art: disc, ink: "blue" }, { art: disc, hidden: true, ink: "yellow" }] };
+  check("a hidden plate does not count as an ink", refused(() => overprint.renderPrint(hiddenOnly)));
+  const pair = { plates: [{ art: disc, ink: "blue" }, { art: disc, ink: "yellow", offset: [3, 2] }] };
+  check("two plates on the same art overprint", !refused(() => overprint.renderPrint(pair)));
 }
 
 function verifyPng() {
@@ -143,6 +165,31 @@ function verifyPng() {
   check("png carries its signature", bytes[0] === 137 && bytes[1] === 80 && bytes[2] === 78 && bytes[3] === 71);
   check("png header records the size", view.getUint32(16) === 9 && view.getUint32(20) === 3);
   check("mask png is one bit per pixel", bytes[24] === 1 && bytes[25] === 3);
+}
+
+function verifyFill() {
+  const print = {
+    paper: "dark",
+    plates: [
+      { art: { kind: "fill" }, ink: "blue", offset: [4, -3], screen: { cell: 6, kind: "halftone" } },
+      { art: { kind: "fill" }, hidden: true, ink: "yellow" },
+      { art: { kind: "fill" }, ink: "fluorescentPink", screen: { angle: 45, cell: 5, dot: "line", kind: "halftone" } },
+    ],
+  };
+  const fill = overprint.printFill(print);
+  const layers = fill.backgroundImage.split("url(\"data:").length - 1;
+  check("printFill makes one background layer per visible plate", layers === 2, `got ${layers}`);
+  check("printFill puts the last plate on top", fill.backgroundPosition === "0px 0px, 4px -3px", fill.backgroundPosition);
+  check("printFill blends dark paper by screen", fill.backgroundBlendMode === "screen, screen", fill.backgroundBlendMode);
+  const clipped = fill.backgroundClip === "text" && fill.WebkitBackgroundClip === "text" && fill.color === "transparent";
+  check("printFill clips to text and empties the fill", clipped);
+  const first = decodeURIComponent(fill.backgroundImage.slice(fill.backgroundImage.indexOf(",") + 1));
+  check("printFill layers are standalone SVG without layer positioning", first.startsWith("<svg") && !first.includes("position:absolute"));
+  const light = { plates: [print.plates[0], print.plates[2]] };
+  check("printFillCss carries the same layers", overprint.printFillCss(light).includes("background-blend-mode:multiply, multiply"));
+  const layered = overprint.printLayers(print);
+  check("printLayers returns every visible plate bottom first with its offset", layered.layers.length === 2 && layered.layers[0].offset[0] === 4);
+  check("printLayers names the blend of the paper", layered.blend === "screen");
 }
 
 async function verifyReact() {
@@ -164,6 +211,7 @@ verifySeparation();
 verifyMarkup();
 verifyRefusals();
 verifyPng();
+verifyFill();
 await verifyReact();
 
 if (failures.length > 0) {

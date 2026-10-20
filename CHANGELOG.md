@@ -4,6 +4,13 @@ All notable changes to `@trebired/overprint` will be documented here.
 
 This project follows semantic versioning once published.
 
+## 0.2.0
+
+- Added ink texture to every plate: fine grain, density mottling and rough edges, seeded per plate, so ink is never flat and overlapping plates show through each other. A plate's `texture` sets the strength from 0.15 to 1, 0.4 by default.
+- **Breaking: a print must be an overprint.** Every renderer refuses a print with fewer than two visible plates, or whose plates never print the same art (unless one is a `fill`), so one ink always lands on another. Hidden plates do not count.
+- Added `printLayers()`, the plates of a print as data: each plate's image and offset, bottom first, with the blend of the paper.
+- Added `printFill()` and `printFillCss()`. A print becomes a fill for an element's text: one vector layer per visible plate as a background, each plate's offset as its position, the plates blended by the paper, clipped to the text, with the text fill made transparent. They return a React style object and a CSS string.
+
 ## 0.1.1
 
 - Fixed waves that never moved in Chromium. The sine map was an SVG image animating inside itself, and a browser does not re-render a filter when an image it reads changes; the map is now a still image whose position an `animate` on the filter slides by one wavelength in a loop, with the amplitude ramp as a second still image multiplied in, so the cloth ripples and its shading bands travel with it.

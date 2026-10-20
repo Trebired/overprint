@@ -71,6 +71,7 @@ type Plate = {
   name?: string;
   offset?: Point;
   screen?: Screen;
+  texture?: number;
   tone?: Tone;
   wave?: Wave;
 };

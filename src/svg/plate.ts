@@ -1,5 +1,6 @@
 import { inkOf } from "./../inks.js";
 import { artNode } from "./art.js";
+import { inkFilter } from "./ink.js";
 import { el, round, type OverprintNode } from "./node.js";
 import { screenContent } from "./screen.js";
 import { waveParts } from "./wave.js";
@@ -8,8 +9,6 @@ import type { Knockout, Paper, Plate, Point } from "./../types.js";
 type PlateContext = { id: string; named: Map<string, Plate>; paper: Paper; size: Point };
 
 const WIDE = { height: "200%", width: "200%", x: "-50%", y: "-50%" };
-
-const WHITE = "0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0";
 
 const BLACK = "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0";
 
@@ -36,7 +35,7 @@ function maskOf(plate: Plate, context: PlateContext): OverprintNode[] {
       el("g", { filter: `url(#${id}a)` }, [artNode(plate.art)]),
       ...knocks.map((knock) => knock.node),
   ]);
-  return [silhouette(`${id}a`, WHITE), ...knocks.map((knock) => knock.filter), mask];
+  return [inkFilter(`${id}a`, plate.texture), ...knocks.map((knock) => knock.filter), mask];
 }
 
 function layerStyle(plate: Plate, paper: Paper): string {

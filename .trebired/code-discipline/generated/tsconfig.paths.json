@@ -31,6 +31,9 @@
       "#ejr1k9960x32": [
         "../../../src/inks.ts"
       ],
+      "#famh33wwxgok": [
+        "../../../src/svg/rules.ts"
+      ],
       "#fo9icp4ajuzz": [
         "../../../src/types.ts"
       ],
@@ -46,11 +49,17 @@
       "#mdad2a89hurp": [
         "../../../scripts/build/generated/tsconfig.mjs"
       ],
+      "#own5f47eq8s7": [
+        "../../../src/svg/ink.ts"
+      ],
       "#p5vir3hdc0co": [
         "../../../scripts/prepare-dist.mjs"
       ],
       "#sjsiregq0kos": [
         "../../../src/index.ts"
+      ],
+      "#tqmgafi7sh9c": [
+        "../../../src/svg/fill.ts"
       ],
       "#wfw89100x7wb": [
         "../../../scripts/build/native.mjs"

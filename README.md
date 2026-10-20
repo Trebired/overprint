@@ -52,6 +52,14 @@ A `Print` is a stack of plates. Each plate is one ink printed through one piece 
 
 The print has no fixed size. Positions, boxes and tones are fractions of the root element, so the same markup fits any box the caller gives it. A plate's `offset` is in CSS pixels and is the plate's misregistration.
 
+### Overprint Is Required
+
+A print is refused unless it is an overprint. It needs at least two visible plates, and at least two of them must print the same art, or one of them must be a `fill`, so one ink always lands on another. A single plate, plates that never share art, and hidden plates counted as inks all throw. The rule is checked by every renderer: `renderPrint`, `printTree`, `<Overprint>`, `printFill` and `printLayers`.
+
+### Ink Texture
+
+Riso ink is never flat, and neither is a plate. Every plate prints through its ink texture: a fine grain where the paper shows through, slow mottling in the ink density, and slightly rough edges, seeded from the plate's id so the print stays deterministic. Where two plates overlap, both inks show through each other the way they do on a duplicator. `texture` sets the strength from 0.15 to 1, 0.4 by default; it cannot be switched off.
+
 ### Inks
 
 `inks` holds the standard risograph ink colours by name: `blue`, `fluorescentPink`, `yellow`, `teal`, `flatGold`, and the rest. A plate's `ink` is an ink name, a `#rgb` or `#rrggbb` string, or an `[r, g, b]` tuple. `inkOf()` resolves any of those and throws on anything else.
@@ -115,6 +123,12 @@ Error diffusion cannot be expressed as vector shapes. Those screens are computed
 
 Every element id inside a print starts with the `id` option, so two prints on one page never collide. The React component derives it from `useId()`, which keeps server and client markup identical through hydration.
 
+### Fills
+
+`printFill(print)` turns a print into a fill for an element's own text instead of layers over a box. It returns the background declarations as a React style object: one `data:` SVG layer per visible plate, the last plate on top, each plate's `offset` as its background position, `multiply` or `screen` between the layers by the print's `paper`, every layer stretched to the element's box, clipped to the text, and the text fill made transparent. `printFillCss(print)` returns the same declarations as a CSS string for server markup. `printLayers(print)` returns the same plates as data, bottom first: each plate's image and offset, and the blend of the paper, for callers that composite the plates themselves.
+
+The layers are vector, so a fill stays sharp at any size; a fill built from halftone or line screens is a few kilobytes. Error-diffusion screens are rasterised at the print's `size` and stretch with the box, so use them in fills only where that box keeps the print's proportions. The fill does not draw an outline: an outlined text keeps its own stroke, and the caller decides how the stroke and the fill are layered.
+
 ### Motion
 
 `animatePrint(root, print)` moves each plate by its `motion`: `drift` sways it slowly, `pull` shifts it toward the pointer by that many CSS pixels. It only writes `transform` on the plate layers, pauses while the print is off screen, does nothing under `prefers-reduced-motion`, and returns a function that stops it. `<Overprint>` calls it after mount; pass `motion={false}` to keep the print still.
@@ -129,6 +143,8 @@ Error diffusion, tone sampling, channel separation and PNG encoding run in a Web
 
 Rendering: `renderPrint`, `printTree`, `toMarkup`.
 
+Fills: `printFill`, `printFillCss`, `printLayers`.
+
 React (`@trebired/overprint/react`): `Overprint`.
 
 Motion: `animatePrint`.
@@ -139,7 +155,7 @@ Pixels: `coverage`, `dither`, `separate`, `encodePng`, `pngDataUri`.
 
 Kernels: `prepareKernels`, `releaseKernels`.
 
-Types: `Print`, `Plate`, `Art`, `Tone`, `Screen`, `Knockout`, `Wave`, `PlateMotion`, `PrintOptions`, `AnimateOptions`, `OverprintNode`, `InkInput`, `InkName`, `Pixels`, and the member types of each union.
+Types: `Print`, `Plate`, `Art`, `Tone`, `Screen`, `Knockout`, `Wave`, `PlateMotion`, `PrintOptions`, `AnimateOptions`, `OverprintNode`, `PrintFill`, `PrintLayer`, `PrintLayers`, `FillOptions`, `InkInput`, `InkName`, `Pixels`, and the member types of each union.
 
 ## What It Does Not Do
 
