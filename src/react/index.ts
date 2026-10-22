@@ -47,7 +47,7 @@ function toReact(node: OverprintNode | string, key: number): ReactNode {
 function Overprint({ as = "span", className, motion, print, style }: OverprintProps) {
   const id = `op${useId().replace(/[^\w-]/gu, "")}`;
   const root = useRef<HTMLElement>(null);
-  const plates = useMemo(() => plateNodes(print, id).map(toReact), [id, print]);
+  const plates = useMemo(() => plateNodes(print, id, { share: true }).map(toReact), [id, print]);
 
   useEffect(() => (motion === false ? undefined : animatePrint(root.current, print, motion)), [motion, print]);
 

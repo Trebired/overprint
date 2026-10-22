@@ -4,6 +4,9 @@
       "#06bk11an93m5": [
         "../../logger/config.ts"
       ],
+      "#1l1k8s5qpbfx": [
+        "../../../src/motion/clock.ts"
+      ],
       "#20ins765q947": [
         "../../../src/svg/tone.ts"
       ],
@@ -13,8 +16,17 @@
       "#2r2obajcrpq8": [
         "../../../src/svg/screen.ts"
       ],
+      "#3yrjkslelthn": [
+        "../../../src/flags/separate.ts"
+      ],
       "#4sypdl6c2rxc": [
         "../../../src/svg/bayer.ts"
+      ],
+      "#7vcgijuwatpl": [
+        "../../../src/flags/index.ts"
+      ],
+      "#aaaayhcynwdh": [
+        "../../../src/flags/wave.ts"
       ],
       "#bfv96slj4ruw": [
         "../../../src/svg/raster.ts"
@@ -22,14 +34,23 @@
       "#bmt6hmkh0q6p": [
         "../../../src/pixels.ts"
       ],
+      "#bodwidiegxa9": [
+        "../../../src/flags/codes.ts"
+      ],
       "#dhqbuw36t2cs": [
         "../../../src/native/kernels.ts"
       ],
       "#e0tee2w8b0lk": [
         "../../../src/svg/print.ts"
       ],
+      "#eb5g4pneh6ty": [
+        "../../../src/svg/region.ts"
+      ],
       "#ejr1k9960x32": [
         "../../../src/inks.ts"
+      ],
+      "#ekhc19t7yead": [
+        "../../../src/flags/print.ts"
       ],
       "#famh33wwxgok": [
         "../../../src/svg/rules.ts"
@@ -37,14 +58,23 @@
       "#fo9icp4ajuzz": [
         "../../../src/types.ts"
       ],
+      "#gez4debl4yn9": [
+        "../../../src/svg/bounds.ts"
+      ],
       "#ipe52aaxkudl": [
         "../../../src/svg/node.ts"
+      ],
+      "#jrguksxiy68z": [
+        "../../../src/flags/react.ts"
       ],
       "#khgg0f9hdj80": [
         "../../../src/motion/animate.ts"
       ],
       "#kw43qaes4las": [
         "../../../src/svg/wave.ts"
+      ],
+      "#lnlk2j1d9mw9": [
+        "../../../src/flags/pole.ts"
       ],
       "#mdad2a89hurp": [
         "../../../scripts/build/generated/tsconfig.mjs"

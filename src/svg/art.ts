@@ -23,11 +23,11 @@ function placed(placement: Placement, child: OverprintNode): OverprintNode {
   return style ? el("g", { style }, [child]) : child;
 }
 
-function frame(placement: Placement, viewBox: string, children: OverprintNode[] | string): OverprintNode {
+function frame(placement: Placement, viewBox: string, children: OverprintNode[] | string, clip = false): OverprintNode {
   const box = boxOf(placement.box);
   const attrs = {
     height: percent(box.height),
-    overflow: "visible",
+    overflow: clip ? "hidden" : "visible",
     preserveAspectRatio: aspect(placement.fit, placement.align),
     viewBox,
     width: percent(box.width),
@@ -67,7 +67,7 @@ function artNode(art: Art): OverprintNode {
     });
     return placed(art, image);
   }
-  if (art.kind === "svg") return placed(art, frame(art, art.viewBox, art.markup));
+  if (art.kind === "svg") return placed(art, frame(art, art.viewBox, art.markup, art.clip));
   const [width, height] = art.viewBox || [1, 1];
   return placed(art, frame(art, `0 0 ${width} ${height}`, [el("path", { d: art.d, "fill-rule": art.rule || "nonzero" })]));
 }

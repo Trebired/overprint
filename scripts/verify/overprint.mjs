@@ -114,7 +114,8 @@ function verifyMarkup() {
   check("bayer dither stays vector", count(markup, /<rect fill="#[0-9a-f]{2}0000"/gu) === 64);
   check("waves displace and respect reduced motion", markup.includes("feDisplacementMap") && markup.includes("prefers-reduced-motion"));
   check("waves move the map with an animate on the filter image, which browsers re-render", markup.includes('<animate attributeName="x"'));
-  check("plate content reaches past the box so tilted art keeps its edges", markup.includes('height="200%" width="200%" x="-50%" y="-50%"'));
+  check("art that stays in its box keeps its filters to the box", markup.includes('height="112%" width="112%" x="-6%" y="-6%"'));
+  check("art used by two plates prints once and is reused", count(markup, /d="M0\.98 0\.5A/gu) === 1 && markup.includes('<use href="#demo-r0">'));
   check("rendering is deterministic", markup === overprint.renderPrint(PRINT, { className: "print", id: "demo" }));
   check(
     "every plate prints ink with grain, mottling and rough edges, never flat",
@@ -123,6 +124,27 @@ function verifyMarkup() {
   const words = { kind: "text", text: "<b>&" };
   const text = overprint.renderPrint({ plates: [{ art: words, ink: "black" }, { art: words, ink: "blue", offset: [2, 1] }] }, { id: "t" });
   check("text art is escaped", text.includes("&lt;b&gt;&amp;") && !text.includes("<b>&"));
+}
+
+function verifyRegions() {
+  const tilted = { box: { height: 0.5, width: 0.5, x: 0.25, y: 0.25 }, d: SUN, kind: "path", rotate: 30 };
+  const turned = overprint.renderPrint({ plates: [{ art: tilted, ink: "blue" }, { art: tilted, ink: "yellow" }] }, { id: "r" });
+  check("tilted art reaches past the box so it keeps its edges", turned.includes('height="200%" width="200%" x="-50%" y="-50%"'));
+  const loose = { d: "M0 0L1.4 0L1.4 1Z", kind: "path" };
+  const spilled = overprint.renderPrint({ plates: [{ art: loose, ink: "blue" }, { art: loose, ink: "yellow" }] }, { id: "s" });
+  check("a path drawn past its view box reaches past the box", spilled.includes('x="-50%"'));
+  const markup = { kind: "svg", markup: "<rect width=\"10\" height=\"10\"/>", viewBox: "0 0 10 10" };
+  const open = overprint.renderPrint({ plates: [{ art: markup, ink: "blue" }, { art: markup, ink: "yellow" }] }, { id: "o" });
+  const clipped = overprint.renderPrint({ plates: [
+        { art: { ...markup, clip: true }, ink: "blue" },
+        { art: { ...markup, clip: true }, ink: "yellow" }
+      ] }, { id: "c" });
+  check(
+    "svg markup reaches past the box unless clipped",
+    open.includes('x="-50%"') && clipped.includes('x="-6%"') && clipped.includes('overflow="hidden"')
+  );
+  const layers = overprint.printLayers(PRINT, { id: "l" }).layers.map((layer) => decodeURIComponent(layer.image));
+  check("printLayers keeps every plate a standalone image", layers.every((image) => !image.includes("<use")));
 }
 
 function verifyRefusals() {
@@ -209,6 +231,7 @@ verifyCoverage();
 verifyDither();
 verifySeparation();
 verifyMarkup();
+verifyRegions();
 verifyRefusals();
 verifyPng();
 verifyFill();

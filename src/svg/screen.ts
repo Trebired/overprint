@@ -2,9 +2,10 @@ import { bayer } from "./bayer.js";
 import { el, round, type OverprintNode } from "./node.js";
 import { rasterDither } from "./raster.js";
 import { tonePaint } from "./tone.js";
+import type { Region } from "./region.js";
 import type { DitherScreen, DotShape, HalftoneScreen, Point, Rgb, Screen, Tone } from "./../types.js";
 
-type ScreenContext = { id: string; ink: Rgb; size: Point };
+type ScreenContext = { id: string; ink: Rgb; region: Region; size: Point };
 
 type ScreenResult = { content: OverprintNode; defs: OverprintNode[] };
 
@@ -45,7 +46,7 @@ function tile(id: string, gradient: string, screen: HalftoneScreen): OverprintNo
   ]);
 }
 
-function threshold(id: string, ink: Rgb, rows: string[], combine?: "in" | "over"): OverprintNode {
+function threshold(id: string, ink: Rgb, region: Region, rows: string[], combine?: "in" | "over"): OverprintNode {
   const [red, green, blue] = ink.map((channel) => round(channel / 255));
   const color = `0 0 0 0 ${red} 0 0 0 0 ${green} 0 0 0 0 ${blue}`;
   const primitives = rows.map((row, index) => el("feColorMatrix", {
@@ -55,21 +56,20 @@ function threshold(id: string, ink: Rgb, rows: string[], combine?: "in" | "over"
         values: `${color} ${row}`,
   }));
   if (combine) primitives.push(el("feComposite", { in: "m0", in2: "m1", operator: combine }));
-  const region = { height: "200%", width: "200%", x: "-50%", y: "-50%" };
   return el("filter", { ...region, "color-interpolation-filters": "sRGB", filterUnits: "userSpaceOnUse", id }, primitives);
 }
 
 function halftone(context: ScreenContext, screen: HalftoneScreen, tone: Tone): ScreenResult {
   const { id, ink } = context;
   const dot = screen.dot || "circle";
-  const paint = tonePaint(`${id}t`, tone, "channel", ink);
+  const paint = tonePaint(`${id}t`, tone, "channel", ink, context.region);
   const sharp = round(screen.cells ? 12 : Math.max(6, (screen.cell ?? 8) * 0.8));
   const gain = round(Math.max(0, screen.gain ?? 1));
   const metrics: Metric[] = [{ axis: "x", id: `${id}p`, node: tile(`${id}p`, `${id}g`, screen) }];
   if (dot === "square" || dot === "cross") metrics.push({ axis: "y", id: `${id}q`, node: tile(`${id}q`, `${id}gy`, screen) });
   const [shade, full] = [round(-sharp * gain), round(sharp * gain)];
   const rows = metrics.map((metric) => (metric.axis === "x" ? `${-sharp} ${shade} 0 0 ${full}` : `0 ${shade} ${-sharp} 0 ${full}`));
-  const filter = threshold(`${id}f`, ink, rows, metrics.length > 1 ? (dot === "square" ? "in" : "over") : undefined);
+  const filter = threshold(`${id}f`, ink, context.region, rows, metrics.length > 1 ? (dot === "square" ? "in" : "over") : undefined);
   const layers = metrics.map((metric, index) => el("rect", { ...paint.extent, fill: `url(#${metric.id})`, style: index ? BLEND : undefined }));
   return {
     content: el("g", { filter: `url(#${id}f)` }, [...layers, paint.layer({ style: BLEND })]),
@@ -79,13 +79,13 @@ function halftone(context: ScreenContext, screen: HalftoneScreen, tone: Tone): S
 
 function ordered(context: ScreenContext, screen: DitherScreen, tone: Tone): ScreenResult {
   const { id, ink } = context;
-  const paint = tonePaint(`${id}t`, tone, "channel", ink);
+  const paint = tonePaint(`${id}t`, tone, "channel", ink, context.region);
   const shift = round(((screen.threshold ?? 128) - 128) / 255);
   if (screen.mode === "threshold") {
-    const filter = threshold(`${id}f`, ink, [`0 -255 0 0 ${round(255 * (0.5 + shift))}`]);
+    const filter = threshold(`${id}f`, ink, context.region, [`0 -255 0 0 ${round(255 * (0.5 + shift))}`]);
     return { content: el("g", { filter: `url(#${id}f)` }, [paint.layer({})]), defs: [...paint.defs, filter] };
   }
-  const filter = threshold(`${id}f`, ink, [`-255 -255 0 0 ${round(255 * (1 + shift))}`]);
+  const filter = threshold(`${id}f`, ink, context.region, [`-255 -255 0 0 ${round(255 * (1 + shift))}`]);
   const layers = [el("rect", { ...paint.extent, fill: `url(#${id}p)` }), paint.layer({ style: BLEND })];
   return { content: el("g", { filter: `url(#${id}f)` }, layers), defs: [bayer(`${id}p`, screen.grain ?? 2), ...paint.defs, filter] };
 }
@@ -96,7 +96,7 @@ function screenContent(context: ScreenContext, screen: Screen, tone: Tone): Scre
     if (screen.mode === "bayer" || screen.mode === "threshold") return ordered(context, screen, tone);
     return rasterDither(context, screen, tone);
   }
-  const paint = tonePaint(`${context.id}t`, tone, "ink", context.ink);
+  const paint = tonePaint(`${context.id}t`, tone, "ink", context.ink, context.region);
   return { content: paint.layer({}), defs: paint.defs };
 }
 

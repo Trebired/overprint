@@ -1,6 +1,5 @@
 import { el, round, type OverprintNode } from "./node.js";
-
-const WIDE = { height: "200%", width: "200%", x: "-50%", y: "-50%" };
+import type { Region } from "./region.js";
 
 const WHITE = "0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0";
 
@@ -16,11 +15,11 @@ function textureOf(value: number | undefined): number {
   return Math.min(1, Math.max(MIN_TEXTURE, value ?? DEFAULT_TEXTURE));
 }
 
-function inkFilter(id: string, texture: number | undefined): OverprintNode {
+function inkFilter(id: string, texture: number | undefined, region: Region): OverprintNode {
   const amount = textureOf(texture);
   const seed = seedOf(id);
   const density = `${round(4 * amount)} 0 0 0 ${round(1 - 2.5 * amount)}`;
-  return el("filter", { ...WIDE, "color-interpolation-filters": "sRGB", filterUnits: "userSpaceOnUse", id }, [
+  return el("filter", { ...region, "color-interpolation-filters": "sRGB", filterUnits: "userSpaceOnUse", id }, [
       el("feColorMatrix", { in: "SourceGraphic", result: "solid", type: "matrix", values: WHITE }),
       el("feTurbulence", { baseFrequency: 0.05, numOctaves: 2, result: "warp", seed, type: "turbulence" }),
       el("feDisplacementMap", {

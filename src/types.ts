@@ -28,7 +28,7 @@ type PathArt = Placement& { d: string; kind: "path"; rule?: "evenodd" | "nonzero
 
 type ImageArt = Placement& { href: string; kind: "image" };
 
-type SvgArt = Placement& { kind: "svg"; markup: string; viewBox: string };
+type SvgArt = Placement& { clip?: boolean; kind: "svg"; markup: string; viewBox: string };
 
 type TextArt = { anchor?: "end" | "middle" | "start"; kind: "text"; size?: string; text: string; x?: number; y?: number };
 

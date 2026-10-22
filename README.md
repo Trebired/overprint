@@ -73,11 +73,13 @@ Art is the shape a plate prints through. Anything drawn by the art becomes ink; 
 | `{ kind: "fill" }` | The whole print |
 | `{ kind: "path", d, viewBox, rule }` | Path data in its own view box, `[1, 1]` by default |
 | `{ kind: "image", href }` | An image, by its alpha |
-| `{ kind: "svg", markup, viewBox }` | Inline SVG children |
+| `{ kind: "svg", markup, viewBox, clip }` | Inline SVG children; `clip` cuts them at the box |
 | `{ kind: "text", text, x, y, anchor, size }` | One line of text in the root element's font |
 | `{ kind: "group", parts, rotate }` | Several arts, rotated together about the print's centre |
 
 Path, image and SVG art take a `box` (fractions of the print), a `fit` (`meet`, `slice` or `fill`), an `align`, and a `rotate` in degrees about the box centre.
+
+A plate's ink filter, mask and screen cover only the area its art can reach, with a margin for the rough ink edge. Fill and image art, path art whose data stays inside its view box, and SVG art with `clip` reach their box. Rotated art, text, sliced paths and SVG markup without `clip` can draw past the box, so their plates keep half a box of room on every side.
 
 ### Tone
 
@@ -115,6 +117,14 @@ Error diffusion cannot be expressed as vector shapes. Those screens are computed
 
 `wave` ripples a plate along the horizontal axis like cloth: `amplitude` in CSS pixels, `length` as a fraction of the print width, `period` in seconds, and `along` the span where the ripple grows from nothing to full. `shade` adds moving shadow bands at that opacity. The ripple runs inside the SVG and needs no script; under `prefers-reduced-motion` it stops and the shading hides, and `animatePrint()` pauses it while the print is off screen.
 
+### Flags
+
+`@trebired/overprint/flags` prints national flags. `flagPrint(code)` returns a `Print` for one of `FLAG_CODES`: 39 countries and the European Union, drawn from [country-flag-icons](https://www.npmjs.com/package/country-flag-icons). Each colour of the flag becomes its own ink, printed twice through the same art, once solid and once through a screen, with the two passes misregistered. The screens follow a fixed order, so each colour of a flag takes the next one: lines, dots, crosses, squares, ordered dither, ellipses. A plate's art is a mask that redraws the flag in its original order with that colour white and every other colour black, so a colour hidden under another stays hidden. The colour of the paper prints in a pale neutral ink on light paper and a dark one on dark paper, so a white or black field shows its print like every other colour. `misregistration` sets the offset in CSS pixels, `paper` the paper, `size` the print's size.
+
+`waveFlag(root)` makes a rendered flag print wave. It draws the plates once into a bitmap, cuts it into vertical strips, and moves each strip with a Web Animations transform and a shading overlay with opacity, so the browser composites the wave without repainting, filtering or running script per frame. The hoist stays still and the fly moves most. `amplitude` is a fraction of the flag's height, `period` the seconds per swing, `waves` how many swings travel across the cloth, `shade` the darkness of the folds, `strips` the number of strips. It bakes when the flag first comes within a screen of the viewport and pauses off screen. A bitmap is baked once per set of plates, size, paper and pixel ratio, and every flag that matches reuses it. It does nothing under `prefers-reduced-motion` and returns a function that stops it and shows the static print again.
+
+`<Flag code="CZ" />` from `@trebired/overprint/flags/react` renders the print and waves it after mount. `pole` adds a printed pole about two and a half times the cloth's height, with the cloth hanging from the middle of its shaft, `wave={false}` keeps it still, and `wave` takes the `waveFlag` options. `polePrint(paper)` is the pole as a print on its own.
+
 ## Runtime
 
 ### Rendering
@@ -122,6 +132,8 @@ Error diffusion cannot be expressed as vector shapes. Those screens are computed
 `renderPrint()` and `printTree()` are pure. They need no DOM, no canvas and no browser, so a Bun server or a static build renders the finished print into its HTML and the art is visible on the first paint. The same input always produces the same markup.
 
 Every element id inside a print starts with the `id` option, so two prints on one page never collide. The React component derives it from `useId()`, which keeps server and client markup identical through hydration.
+
+Art that more than one plate prints, as its own art or as a knockout, is written once in the first layer and reused by the others with `<use>`. `printLayers()` and the fills never share art, so every plate stays a standalone image.
 
 ### Fills
 
@@ -131,7 +143,9 @@ The layers are vector, so a fill stays sharp at any size; a fill built from half
 
 ### Motion
 
-`animatePrint(root, print)` moves each plate by its `motion`: `drift` sways it slowly, `pull` shifts it toward the pointer by that many CSS pixels. It only writes `transform` on the plate layers, pauses while the print is off screen, does nothing under `prefers-reduced-motion`, and returns a function that stops it. `<Overprint>` calls it after mount; pass `motion={false}` to keep the print still.
+`animatePrint(root, print)` moves each plate by its `motion`: `drift` sways it slowly, `pull` shifts it toward the pointer by that many CSS pixels. It only writes `transform` on the layers whose plate moves, and only when the value changes, pauses while the print is off screen, does nothing under `prefers-reduced-motion`, and returns a function that stops it. `<Overprint>` calls it after mount; pass `motion={false}` to keep the print still.
+
+Every print on the page runs on one clock and one set of input listeners. The clock ticks every frame while a plate eases toward the pointer and ten times a second while only the drift moves. About three seconds after the last pointer move, scroll, key or touch the plates settle and the clock stops; it holds still while the page scrolls and resumes on the next interaction.
 
 ### Pixel Kernels
 
@@ -147,6 +161,8 @@ Fills: `printFill`, `printFillCss`, `printLayers`.
 
 React (`@trebired/overprint/react`): `Overprint`.
 
+Flags (`@trebired/overprint/flags`): `flagPrint`, `waveFlag`, `polePrint`, `flagMarkup`, `FLAG_CODES`; React (`@trebired/overprint/flags/react`): `Flag`.
+
 Motion: `animatePrint`.
 
 Inks: `inks`, `inkOf`.
@@ -155,7 +171,7 @@ Pixels: `coverage`, `dither`, `separate`, `encodePng`, `pngDataUri`.
 
 Kernels: `prepareKernels`, `releaseKernels`.
 
-Types: `Print`, `Plate`, `Art`, `Tone`, `Screen`, `Knockout`, `Wave`, `PlateMotion`, `PrintOptions`, `AnimateOptions`, `OverprintNode`, `PrintFill`, `PrintLayer`, `PrintLayers`, `FillOptions`, `InkInput`, `InkName`, `Pixels`, and the member types of each union.
+Types: `FlagCode`, `FlagPrintOptions`, `FlagWaveOptions`, `Print`, `Plate`, `Art`, `Tone`, `Screen`, `Knockout`, `Wave`, `PlateMotion`, `PrintOptions`, `AnimateOptions`, `OverprintNode`, `PrintFill`, `PrintLayer`, `PrintLayers`, `FillOptions`, `InkInput`, `InkName`, `Pixels`, and the member types of each union.
 
 ## What It Does Not Do
 
@@ -166,3 +182,4 @@ This package does not:
 - Position, size or style the root element.
 - Export print-ready files or talk to a printer or a duplicator.
 - Match the colour of any physical ink exactly; ink values are screen approximations.
+- Ship a flag for every country; `FLAG_CODES` lists the ones it prints, and a flag's emblem is the simplified one the source draws.

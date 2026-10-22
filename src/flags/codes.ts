@@ -1,0 +1,98 @@
+import {
+  AR,
+  AT,
+  AU,
+  BE,
+  BR,
+  CA,
+  CH,
+  CN,
+  CZ,
+  DE,
+  DK,
+  EE,
+  ES,
+  EU,
+  FI,
+  FR,
+  GB,
+  HU,
+  IE,
+  IN,
+  IS,
+  IT,
+  JP,
+  KR,
+  LT,
+  LU,
+  LV,
+  MX,
+  NL,
+  NO,
+  NZ,
+  PL,
+  PT,
+  RU,
+  SE,
+  SK,
+  TR,
+  UA,
+  US,
+  ZA,
+} from "country-flag-icons/string/3x2";
+
+const FLAGS = {
+  AR,
+  AT,
+  AU,
+  BE,
+  BR,
+  CA,
+  CH,
+  CN,
+  CZ,
+  DE,
+  DK,
+  EE,
+  ES,
+  EU,
+  FI,
+  FR,
+  GB,
+  HU,
+  IE,
+  IN,
+  IS,
+  IT,
+  JP,
+  KR,
+  LT,
+  LU,
+  LV,
+  MX,
+  NL,
+  NO,
+  NZ,
+  PL,
+  PT,
+  RU,
+  SE,
+  SK,
+  TR,
+  UA,
+  US,
+  ZA,
+} as const;
+
+type FlagCode = keyof typeof FLAGS;
+
+const FLAG_CODES = Object.keys(FLAGS) as FlagCode[];
+
+function flagMarkup(code: FlagCode): string {
+  const markup = FLAGS[code];
+  if (!markup) throw new Error(`@trebired/overprint: no flag for "${String(code)}"; use one of ${FLAG_CODES.join(", ")}`);
+  return markup;
+}
+
+export { FLAG_CODES, flagMarkup };
+export type { FlagCode };

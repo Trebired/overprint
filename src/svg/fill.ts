@@ -1,6 +1,7 @@
 import { round, toMarkup, type OverprintNode } from "./node.js";
 import { idOf, plateNodes } from "./print.js";
-import type { Print } from "./../types.js";
+import { DEFAULT_SIZE } from "./raster.js";
+import type { Point, Print } from "./../types.js";
 
 type PrintFill = {
   WebkitBackgroundClip: "text";
@@ -19,13 +20,13 @@ type PrintLayer = { image: string; offset: [number, number] };
 
 type PrintLayers = { blend: "multiply" | "screen"; layers: PrintLayer[] };
 
-function standalone(node: OverprintNode): OverprintNode {
+function standalone(node: OverprintNode, size: Point): OverprintNode {
   const { style: _style, ...attrs } = node.attrs;
-  return { ...node, attrs: { ...attrs, preserveAspectRatio: "none" } };
+  return { ...node, attrs: { ...attrs, height: size[1], preserveAspectRatio: "none", viewBox: `0 0 ${size[0]} ${size[1]}`, width: size[0] } };
 }
 
-function imageOf(node: OverprintNode): string {
-  return `url("data:image/svg+xml,${encodeURIComponent(toMarkup(standalone(node)))}")`;
+function imageOf(node: OverprintNode, size: Point): string {
+  return `url("data:image/svg+xml,${encodeURIComponent(toMarkup(standalone(node, size)))}")`;
 }
 
 function printLayers(print: Print, options: FillOptions = {}): PrintLayers {
@@ -35,7 +36,7 @@ function printLayers(print: Print, options: FillOptions = {}): PrintLayers {
     blend: print.paper === "dark" ? "screen" : "multiply",
     layers: plates.map((plate, index) => {
         const [x, y] = plate.offset || [0, 0];
-        return { image: imageOf(nodes[index] as OverprintNode), offset: [round(x), round(y)] };
+        return { image: imageOf(nodes[index] as OverprintNode, print.size || DEFAULT_SIZE), offset: [round(x), round(y)] };
     }),
   };
 }

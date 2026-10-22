@@ -1,5 +1,6 @@
 import { pngDataUri } from "./../pixels.js";
 import { el, percent, round, type OverprintNode } from "./node.js";
+import type { Region } from "./region.js";
 import type { Point, Rgb, Tone } from "./../types.js";
 
 type ToneMode = "channel" | "ink";
@@ -7,8 +8,6 @@ type ToneMode = "channel" | "ink";
 type TonePaint = { defs: OverprintNode[]; extent: Record<string, string>; layer: (attrs: Record<string, string>) => OverprintNode };
 
 const FULL = { height: "100%", width: "100%" };
-
-const WIDE = { height: "200%", width: "200%", x: "-50%", y: "-50%" };
 
 function hex(ink: Rgb): string {
   return `#${ink.map((channel) => channel.toString(16).padStart(2, "0")).join("")}`;
@@ -51,11 +50,11 @@ function gradient(id: string, tone: Tone, mode: ToneMode, ink: Rgb): OverprintNo
   return null;
 }
 
-function tonePaint(id: string, tone: Tone, mode: ToneMode, ink: Rgb): TonePaint {
+function tonePaint(id: string, tone: Tone, mode: ToneMode, ink: Rgb, region: Region): TonePaint {
   if (tone.kind === "flat") {
     const opacity = mode === "ink" ? String(round(Math.max(0, Math.min(1, tone.level)))) : undefined;
     const fill = flatPaint(tone.level, mode, ink);
-    return { defs: [], extent: WIDE, layer: (attrs) => el("rect", { ...WIDE, ...attrs, fill, "fill-opacity": opacity }) };
+    return { defs: [], extent: region, layer: (attrs) => el("rect", { ...region, ...attrs, fill, "fill-opacity": opacity }) };
   }
   if (tone.kind === "image" || tone.kind === "pixels") {
     const href = tone.kind === "image" ? tone.href : pngDataUri(tone.pixels);
@@ -67,7 +66,7 @@ function tonePaint(id: string, tone: Tone, mode: ToneMode, ink: Rgb): TonePaint 
     };
   }
   const defs = [gradient(id, tone, mode, ink)].filter((node): node is OverprintNode => node !== null);
-  return { defs, extent: WIDE, layer: (attrs) => el("rect", { ...WIDE, ...attrs, fill: `url(#${id})` }) };
+  return { defs, extent: region, layer: (attrs) => el("rect", { ...region, ...attrs, fill: `url(#${id})` }) };
 }
 
 export { hex, tonePaint };
