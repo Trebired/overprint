@@ -166,6 +166,23 @@ function verifyRefusals() {
           ],
   })));
   verifyOverprintRule(refused);
+  verifySingleSheet(refused);
+}
+
+function verifySingleSheet(refused) {
+  const sheet = (plates) => ({ plates, single: true });
+  const solo = overprint.renderPrint(sheet([{ art: { kind: "fill" }, ink: "blue" }]), { id: "one" });
+  check("a single sheet prints one plate", solo.split("<svg aria-hidden").length - 1 === 1);
+  check("a single sheet keeps the ink texture", solo.includes("feTurbulence"));
+  check("a single sheet refuses a second visible plate", refused(() => overprint.renderPrint(sheet([
+            { art: { kind: "fill" }, ink: "blue" },
+            { art: { kind: "fill" }, ink: "yellow" },
+  ]))));
+  check(
+    "a single sheet refuses having no visible plate",
+    refused(() => overprint.renderPrint(sheet([{ art: { kind: "fill" }, hidden: true, ink: "blue" }])))
+  );
+  check("one plate without single is still refused", refused(() => overprint.renderPrint({ plates: [{ art: { kind: "fill" }, ink: "blue" }] })));
 }
 
 function verifyOverprintRule(refused) {

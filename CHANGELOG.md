@@ -4,6 +4,10 @@ All notable changes to `@trebired/overprint` will be documented here.
 
 This project follows semantic versioning once published.
 
+## 0.4.0
+
+- Added single sheets. A print with `single: true` prints exactly one visible plate, with the same ink texture and screens, and every renderer accepts it; it throws when it has more or fewer than one visible plate. Without `single`, a print must still be an overprint, and the error for a lone plate now names the option.
+
 ## 0.3.0
 
 - Added `@trebired/overprint/flags`: `flagPrint(code)` prints one of 40 flags as an overprint, one ink per flag colour printed solid and through a screen, misregistered. Each colour of a flag takes the next screen in a fixed order, and the paper colour prints in a pale neutral ink on light paper and a dark one on dark paper. `waveFlag(root)` waves a rendered flag by baking it once into a bitmap and moving vertical strips with compositor transforms, so a waving flag costs no repaint or per-frame script. `polePrint()` prints the pole.

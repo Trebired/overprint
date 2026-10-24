@@ -76,7 +76,7 @@ type Plate = {
   wave?: Wave;
 };
 
-type Print = { paper?: Paper; plates: readonly Plate[]; size?: Point };
+type Print = { paper?: Paper; plates: readonly Plate[]; single?: boolean; size?: Point };
 
 export type {
   Align,

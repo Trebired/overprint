@@ -56,6 +56,8 @@ The print has no fixed size. Positions, boxes and tones are fractions of the roo
 
 A print is refused unless it is an overprint. It needs at least two visible plates, and at least two of them must print the same art, or one of them must be a `fill`, so one ink always lands on another. A single plate, plates that never share art, and hidden plates counted as inks all throw. The rule is checked by every renderer: `renderPrint`, `printTree`, `<Overprint>`, `printFill` and `printLayers`.
 
+A print with `single: true` is a single sheet: exactly one visible plate, printed with the same ink texture and screens, with no second ink on it. It is the only way to print one ink, so a print never becomes one by accident; a single sheet with more or fewer than one visible plate throws.
+
 ### Ink Texture
 
 Riso ink is never flat, and neither is a plate. Every plate prints through its ink texture: a fine grain where the paper shows through, slow mottling in the ink density, and slightly rough edges, seeded from the plate's id so the print stays deterministic. Where two plates overlap, both inks show through each other the way they do on a duplicator. `texture` sets the strength from 0.15 to 1, 0.4 by default; it cannot be switched off.
