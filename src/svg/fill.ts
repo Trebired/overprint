@@ -1,4 +1,5 @@
 import { round, toMarkup, type OverprintNode } from "./node.js";
+import { blendOf } from "./plate.js";
 import { idOf, plateNodes } from "./print.js";
 import { DEFAULT_SIZE } from "./raster.js";
 import type { Point, Print } from "./../types.js";
@@ -16,7 +17,7 @@ type PrintFill = {
 
 type FillOptions = { id?: string };
 
-type PrintLayer = { image: string; offset: [number, number] };
+type PrintLayer = { blend: "multiply" | "normal" | "screen"; image: string; offset: [number, number] };
 
 type PrintLayers = { blend: "multiply" | "screen"; layers: PrintLayer[] };
 
@@ -36,17 +37,18 @@ function printLayers(print: Print, options: FillOptions = {}): PrintLayers {
     blend: print.paper === "dark" ? "screen" : "multiply",
     layers: plates.map((plate, index) => {
         const [x, y] = plate.offset || [0, 0];
-        return { image: imageOf(nodes[index] as OverprintNode, print.size || DEFAULT_SIZE), offset: [round(x), round(y)] };
+        const image = imageOf(nodes[index] as OverprintNode, print.size || DEFAULT_SIZE);
+        return { blend: blendOf(plate, print.paper || "light"), image, offset: [round(x), round(y)] };
     }),
   };
 }
 
 function printFill(print: Print, options: FillOptions = {}): PrintFill {
-  const { blend, layers } = printLayers(print, options);
+  const { layers } = printLayers(print, options);
   const top = [...layers].reverse();
   return {
     WebkitBackgroundClip: "text",
-    backgroundBlendMode: top.map(() => blend).join(", "),
+    backgroundBlendMode: top.map((layer) => layer.blend).join(", "),
     backgroundClip: "text",
     backgroundImage: top.map((layer) => layer.image).join(", "),
     backgroundPosition: top.map((layer) => `${layer.offset[0]}px ${layer.offset[1]}px`).join(", "),

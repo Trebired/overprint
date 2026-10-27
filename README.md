@@ -115,6 +115,10 @@ Error diffusion cannot be expressed as vector shapes. Those screens are computed
 
 `knockout: ["name"]` removes this plate's ink wherever the named plate's art draws, so the paper shows through instead of the inks mixing. `{ plate, spread }` grows the cut by `spread` CSS pixels. A plate with `hidden: true` never renders and exists only to be knocked out by.
 
+### Opaque plates
+
+`opaque: true` prints a plate over the plates beneath it instead of mixing with them: its ink covers theirs, and the paper and the other plates show only through the gaps in its screen. The plate's place in `plates` decides what it covers, since later plates print on top. `printLayers` reports the blend of each layer, `normal` for an opaque plate.
+
 ### Waves
 
 `wave` ripples a plate along the horizontal axis like cloth: `amplitude` in CSS pixels, `length` as a fraction of the print width, `period` in seconds, and `along` the span where the ripple grows from nothing to full. `shade` adds moving shadow bands at that opacity. The ripple runs inside the SVG and needs no script; under `prefers-reduced-motion` it stops and the shading hides, and `animatePrint()` pauses it while the print is off screen.
@@ -139,7 +143,7 @@ Art that more than one plate prints, as its own art or as a knockout, is written
 
 ### Fills
 
-`printFill(print)` turns a print into a fill for an element's own text instead of layers over a box. It returns the background declarations as a React style object: one `data:` SVG layer per visible plate, the last plate on top, each plate's `offset` as its background position, `multiply` or `screen` between the layers by the print's `paper`, every layer stretched to the element's box, clipped to the text, and the text fill made transparent. `printFillCss(print)` returns the same declarations as a CSS string for server markup. `printLayers(print)` returns the same plates as data, bottom first: each plate's image and offset, and the blend of the paper, for callers that composite the plates themselves.
+`printFill(print)` turns a print into a fill for an element's own text instead of layers over a box. It returns the background declarations as a React style object: one `data:` SVG layer per visible plate, the last plate on top, each plate's `offset` as its background position, `multiply` or `screen` between the layers by the print's `paper` (`normal` for an opaque plate), every layer stretched to the element's box, clipped to the text, and the text fill made transparent. `printFillCss(print)` returns the same declarations as a CSS string for server markup. `printLayers(print)` returns the same plates as data, bottom first: each plate's image, offset and blend, and the blend of the paper, for callers that composite the plates themselves.
 
 The layers are vector, so a fill stays sharp at any size; a fill built from halftone or line screens is a few kilobytes. Error-diffusion screens are rasterised at the print's `size` and stretch with the box, so use them in fills only where that box keeps the print's proportions. The fill does not draw an outline: an outlined text keeps its own stroke, and the caller decides how the stroke and the fill are layered.
 

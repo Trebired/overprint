@@ -4,6 +4,10 @@ All notable changes to `@trebired/overprint` will be documented here.
 
 This project follows semantic versioning once published.
 
+## 0.5.0
+
+- Added opaque plates. A plate with `opaque: true` prints over the plates beneath it instead of mixing with them, so its ink covers theirs and they show only through the gaps in its screen. `printLayers` now reports each layer's `blend`, and `printFill` uses it.
+
 ## 0.4.0
 
 - Added single sheets. A print with `single: true` prints exactly one visible plate, with the same ink texture and screens, and every renderer accepts it; it throws when it has more or fewer than one visible plate. Without `single`, a print must still be an overprint, and the error for a lone plate now names the option.

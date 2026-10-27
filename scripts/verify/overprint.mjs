@@ -145,6 +145,13 @@ function verifyRegions() {
   );
   const layers = overprint.printLayers(PRINT, { id: "l" }).layers.map((layer) => decodeURIComponent(layer.image));
   check("printLayers keeps every plate a standalone image", layers.every((image) => !image.includes("<use")));
+  const covering = { paper: "dark", plates: [{ art: { kind: "fill" }, ink: "blue" }, { art: { kind: "fill" }, ink: "yellow", opaque: true }] };
+  const covered = overprint.renderPrint(covering, { id: "q" });
+  check("an opaque plate prints without blending", covered.includes("mix-blend-mode:normal") && covered.includes("mix-blend-mode:screen"));
+  check(
+    "printLayers reports an opaque layer as normal",
+    overprint.printLayers(covering).layers.map((layer) => layer.blend).join() === "screen,normal"
+  );
 }
 
 function verifyRefusals() {

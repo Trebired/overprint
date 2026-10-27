@@ -70,6 +70,7 @@ type Plate = {
   motion?: PlateMotion;
   name?: string;
   offset?: Point;
+  opaque?: boolean;
   screen?: Screen;
   texture?: number;
   tone?: Tone;

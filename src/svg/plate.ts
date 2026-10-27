@@ -46,6 +46,11 @@ function maskOf(plate: Plate, context: PlateContext, reach: Bounds | null): Over
   return [inkFilter(`${id}a`, plate.texture, region), ...knocks.map((knock) => knock.filter), mask];
 }
 
+function blendOf(plate: Plate, paper: Paper): "multiply" | "normal" | "screen" {
+  if (plate.opaque) return "normal";
+  return paper === "dark" ? "screen" : "multiply";
+}
+
 function layerStyle(plate: Plate, paper: Paper): string {
   const [x, y] = plate.offset || [0, 0];
   return [
@@ -56,7 +61,7 @@ function layerStyle(plate: Plate, paper: Paper): string {
     "height:100%",
     "overflow:visible",
     "pointer-events:none",
-    `mix-blend-mode:${paper === "dark" ? "screen" : "multiply"}`,
+    `mix-blend-mode:${blendOf(plate, paper)}`,
     `transform:translate(${round(x)}px,${round(y)}px)`,
   ].join(";");
 }
@@ -81,5 +86,5 @@ function plateNode(plate: Plate, context: PlateContext): OverprintNode {
   ]);
 }
 
-export { knockoutOf, plateNode };
+export { blendOf, knockoutOf, plateNode };
 export type { PlateContext };
