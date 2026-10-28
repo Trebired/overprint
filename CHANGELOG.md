@@ -4,6 +4,11 @@ All notable changes to `@trebired/overprint` will be documented here.
 
 This project follows semantic versioning once published.
 
+## 0.7.0
+
+- Added `@trebired/overprint/sketch`. `sketch(pixels)` turns a photograph into a pen drawing as standalone SVG: outlines traced from its edges, hatching for its shading, leaf clusters for greenery and a blank sky, drawn with Rough.js at a low roughness so the lines read as a steady hand. The edge, sky, tone and foliage passes run in the Rust kernels. `detail`, `shading`, `roughness`, `stroke`, `seed`, `color`, `sky` and `foliage` tune it, and the same input always draws the same picture.
+- Added `roughjs` as a dependency, used only by the sketch entry point.
+
 ## 0.6.0
 
 - Changed a plate's `offset` to scale with the viewport. It is the full offset at 1200px wide and above and shrinks with a narrower viewport to no less than half, so a print on a phone is no further off register than on a desktop. The scaling is a CSS `clamp()` in the markup, so the server render needs no script. `printFill()` scales its background positions the same way; `printLayers()` still returns the offsets as declared.
