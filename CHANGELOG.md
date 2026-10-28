@@ -4,6 +4,11 @@ All notable changes to `@trebired/overprint` will be documented here.
 
 This project follows semantic versioning once published.
 
+## 0.6.0
+
+- Changed a plate's `offset` to scale with the viewport. It is the full offset at 1200px wide and above and shrinks with a narrower viewport to no less than half, so a print on a phone is no further off register than on a desktop. The scaling is a CSS `clamp()` in the markup, so the server render needs no script. `printFill()` scales its background positions the same way; `printLayers()` still returns the offsets as declared.
+- Fixed touch input pulling plates. A finger dragging the page moved every print's plates toward the touch, so after a scroll on a phone prints far from the finger sat at their furthest offset. Only a mouse or pen pointer pulls a plate now.
+
 ## 0.5.0
 
 - Added opaque plates. A plate with `opaque: true` prints over the plates beneath it instead of mixing with them, so its ink covers theirs and they show only through the gaps in its screen. `printLayers` now reports each layer's `blend`, and `printFill` uses it.
