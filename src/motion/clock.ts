@@ -67,8 +67,8 @@ function stopTicker(ticker: Ticker) {
 
 function stir(event: Event) {
   clock.lastActive = performance.now();
-  if (event.type === "pointermove") {
-    const move = event as PointerEvent;
+  const move = event as PointerEvent;
+  if (event.type === "pointermove" && move.pointerType !== "touch") {
     pointer.x = move.clientX;
     pointer.y = move.clientY;
     pointer.version++;
