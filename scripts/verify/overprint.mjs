@@ -116,6 +116,9 @@ function verifyMarkup() {
   check("waves move the map with an animate on the filter image, which browsers re-render", markup.includes('<animate attributeName="x"'));
   check("art that stays in its box keeps its filters to the box", markup.includes('height="112%" width="112%" x="-6%" y="-6%"'));
   check("art used by two plates prints once and is reused", count(markup, /d="M0\.98 0\.5A/gu) === 1 && markup.includes('<use href="#demo-r0">'));
+  const shifted = overprint.renderPrint({ plates: [{ art: { kind: "fill" }, ink: "blue", offset: [6, -4] }, PRINT.plates[3]] }, { id: "o" });
+  const scaled = shifted.includes("transform:translate(clamp(3px, 0.5vw, 6px),clamp(-4px, -0.333vw, -2px))");
+  check("a plate's offset scales with the viewport in the markup, never below half", scaled);
   check("rendering is deterministic", markup === overprint.renderPrint(PRINT, { className: "print", id: "demo" }));
   check(
     "every plate prints ink with grain, mottling and rough edges, never flat",
@@ -225,7 +228,8 @@ function verifyFill() {
   const fill = overprint.printFill(print);
   const layers = fill.backgroundImage.split("url(\"data:").length - 1;
   check("printFill makes one background layer per visible plate", layers === 2, `got ${layers}`);
-  check("printFill puts the last plate on top", fill.backgroundPosition === "0px 0px, 4px -3px", fill.backgroundPosition);
+  const position = "0px 0px, clamp(2px, 0.333vw, 4px) clamp(-3px, -0.25vw, -1.5px)";
+  check("printFill puts the last plate on top, its offset scaled with the viewport", fill.backgroundPosition === position, fill.backgroundPosition);
   check("printFill blends dark paper by screen", fill.backgroundBlendMode === "screen, screen", fill.backgroundBlendMode);
   const clipped = fill.backgroundClip === "text" && fill.WebkitBackgroundClip === "text" && fill.color === "transparent";
   check("printFill clips to text and empties the fill", clipped);

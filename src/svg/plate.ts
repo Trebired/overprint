@@ -2,6 +2,7 @@ import { inkOf } from "./../inks.js";
 import { artNode } from "./art.js";
 import { inkFilter } from "./ink.js";
 import { el, round, type OverprintNode } from "./node.js";
+import { registeredShift } from "./registration.js";
 import { plateReach, regionOf, type Region } from "./region.js";
 import { screenContent } from "./screen.js";
 import { waveParts } from "./wave.js";
@@ -52,7 +53,6 @@ function blendOf(plate: Plate, paper: Paper): "multiply" | "normal" | "screen" {
 }
 
 function layerStyle(plate: Plate, paper: Paper): string {
-  const [x, y] = plate.offset || [0, 0];
   return [
     "position:absolute",
     "left:0",
@@ -62,7 +62,7 @@ function layerStyle(plate: Plate, paper: Paper): string {
     "overflow:visible",
     "pointer-events:none",
     `mix-blend-mode:${blendOf(plate, paper)}`,
-    `transform:translate(${round(x)}px,${round(y)}px)`,
+    `transform:${registeredShift(plate.offset || [0, 0])}`,
   ].join(";");
 }
 

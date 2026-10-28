@@ -57,8 +57,8 @@ function decoded(href: string): Promise<HTMLImageElement> {
 }
 
 function offsetOf(layer: SVGSVGElement): [number, number] {
-  const match = /translate\(([-\d.]+)px,\s*([-\d.]+)px\)/u.exec(layer.style.transform || "");
-  return match ? [Number(match[1]), Number(match[2])] : [0, 0];
+  const matrix = new DOMMatrixReadOnly(getComputedStyle(layer).transform || "none");
+  return [matrix.e, matrix.f];
 }
 
 function encoded(canvas: HTMLCanvasElement): Promise<string> {

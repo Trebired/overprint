@@ -1,6 +1,6 @@
-import { round } from "./../svg/node.js";
+import { registeredShift } from "./../svg/registration.js";
 import { pointer, restingSince, scrolling, startTicker, stopTicker, TICK_MS, watchActivity, type Ticker } from "./clock.js";
-import type { Plate, Point, Print } from "./../types.js";
+import type { Plate, Print } from "./../types.js";
 
 type AnimateOptions = { drift?: boolean; pointer?: boolean };
 
@@ -33,11 +33,10 @@ function driftOf(plate: Plate, options: AnimateOptions): number {
   return options.drift === false ? 0 : plate.motion?.drift ?? 0;
 }
 
-function shiftOf(plate: Plate, at: { x: number; y: number }, time: number, options: AnimateOptions): Point {
-  const [x, y] = plate.offset || [0, 0];
+function shiftOf(plate: Plate, at: { x: number; y: number }, time: number, options: AnimateOptions): string {
   const pull = pullOf(plate, options);
   const phase = (time / 2.2) * driftOf(plate, options);
-  return [x + at.x * pull + Math.sin(phase) * 2, y + at.y * pull + Math.sin(phase * 0.7) * 1.5];
+  return registeredShift(plate.offset || [0, 0], [at.x * pull + Math.sin(phase) * 2, at.y * pull + Math.sin(phase * 0.7) * 1.5]);
 }
 
 function playSvg(element: SVGElement, playing: boolean) {
@@ -62,8 +61,7 @@ function aimAt(root: Element, motion: Motion) {
 function place(moving: Layer[], motion: Motion, options: AnimateOptions, smooth: boolean) {
   const time = (smooth ? motion.elapsed : Math.floor(motion.elapsed / TICK_MS) * TICK_MS) / 1000;
   for (const layer of moving) {
-    const [x, y] = shiftOf(layer.plate, motion.at, time, options);
-    const transform = `translate(${round(x)}px,${round(y)}px)`;
+    const transform = shiftOf(layer.plate, motion.at, time, options);
     if (transform === layer.shown) continue;
     layer.shown = transform;
     layer.element.style.transform = transform;

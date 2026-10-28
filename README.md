@@ -50,7 +50,7 @@ The same print renders without React through `renderPrint(print, { id: "poster" 
 
 A `Print` is a stack of plates. Each plate is one ink printed through one piece of art, and each renders as its own `<svg>` layer absolutely positioned over the print's root element. Layers overprint with `mix-blend-mode: multiply`, so overlapping inks darken the way ink does on paper. `paper: "dark"` switches every layer to `screen` for a dark background.
 
-The print has no fixed size. Positions, boxes and tones are fractions of the root element, so the same markup fits any box the caller gives it. A plate's `offset` is in CSS pixels and is the plate's misregistration.
+The print has no fixed size. Positions, boxes and tones are fractions of the root element, so the same markup fits any box the caller gives it. A plate's `offset` is in CSS pixels and is the plate's misregistration. It is the full offset on a viewport 1200px wide or wider and shrinks with a narrower one, to no less than half, so a print on a phone is as far off register as the same print on a desktop rather than twice as far. The scaling is CSS in the markup, so the server render is already right.
 
 ### Overprint Is Required
 
@@ -143,13 +143,13 @@ Art that more than one plate prints, as its own art or as a knockout, is written
 
 ### Fills
 
-`printFill(print)` turns a print into a fill for an element's own text instead of layers over a box. It returns the background declarations as a React style object: one `data:` SVG layer per visible plate, the last plate on top, each plate's `offset` as its background position, `multiply` or `screen` between the layers by the print's `paper` (`normal` for an opaque plate), every layer stretched to the element's box, clipped to the text, and the text fill made transparent. `printFillCss(print)` returns the same declarations as a CSS string for server markup. `printLayers(print)` returns the same plates as data, bottom first: each plate's image, offset and blend, and the blend of the paper, for callers that composite the plates themselves.
+`printFill(print)` turns a print into a fill for an element's own text instead of layers over a box. It returns the background declarations as a React style object: one `data:` SVG layer per visible plate, the last plate on top, each plate's `offset`, scaled with the viewport as above, as its background position, `multiply` or `screen` between the layers by the print's `paper` (`normal` for an opaque plate), every layer stretched to the element's box, clipped to the text, and the text fill made transparent. `printFillCss(print)` returns the same declarations as a CSS string for server markup. `printLayers(print)` returns the same plates as data, bottom first: each plate's image, offset and blend, and the blend of the paper, for callers that composite the plates themselves.
 
 The layers are vector, so a fill stays sharp at any size; a fill built from halftone or line screens is a few kilobytes. Error-diffusion screens are rasterised at the print's `size` and stretch with the box, so use them in fills only where that box keeps the print's proportions. The fill does not draw an outline: an outlined text keeps its own stroke, and the caller decides how the stroke and the fill are layered.
 
 ### Motion
 
-`animatePrint(root, print)` moves each plate by its `motion`: `drift` sways it slowly, `pull` shifts it toward the pointer by that many CSS pixels. It only writes `transform` on the layers whose plate moves, and only when the value changes, pauses while the print is off screen, does nothing under `prefers-reduced-motion`, and returns a function that stops it. `<Overprint>` calls it after mount; pass `motion={false}` to keep the print still.
+`animatePrint(root, print)` moves each plate by its `motion`: `drift` sways it slowly, `pull` shifts it toward a mouse or pen pointer by that many CSS pixels; a touch never pulls, because a finger that scrolls the page is not pointing at a print, so on a touch screen the plates rest at their offset. It only writes `transform` on the layers whose plate moves, and only when the value changes, pauses while the print is off screen, does nothing under `prefers-reduced-motion`, and returns a function that stops it. `<Overprint>` calls it after mount; pass `motion={false}` to keep the print still.
 
 Every print on the page runs on one clock and one set of input listeners. The clock ticks every frame while a plate eases toward the pointer and ten times a second while only the drift moves. About three seconds after the last pointer move, scroll, key or touch the plates settle and the clock stops; it holds still while the page scrolls and resumes on the next interaction.
 

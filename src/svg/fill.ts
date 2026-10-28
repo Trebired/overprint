@@ -1,4 +1,5 @@
 import { round, toMarkup, type OverprintNode } from "./node.js";
+import { registered } from "./registration.js";
 import { blendOf } from "./plate.js";
 import { idOf, plateNodes } from "./print.js";
 import { DEFAULT_SIZE } from "./raster.js";
@@ -51,7 +52,7 @@ function printFill(print: Print, options: FillOptions = {}): PrintFill {
     backgroundBlendMode: top.map((layer) => layer.blend).join(", "),
     backgroundClip: "text",
     backgroundImage: top.map((layer) => layer.image).join(", "),
-    backgroundPosition: top.map((layer) => `${layer.offset[0]}px ${layer.offset[1]}px`).join(", "),
+    backgroundPosition: top.map((layer) => `${registered(layer.offset[0])} ${registered(layer.offset[1])}`).join(", "),
     backgroundRepeat: "no-repeat",
     backgroundSize: "100% 100%",
     color: "transparent",
