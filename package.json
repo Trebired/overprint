@@ -9,7 +9,7 @@
   },
   "name": "@trebired/overprint",
   "version": "0.6.0",
-  "description": "Risograph-style prints as layered vector SVG: one plate per ink, halftone and dither screens, knockouts, misregistration and motion, rendered as markup in Bun or as a React component, with the pixel work in Rust compiled to WebAssembly.",
+  "description": "Risograph-style prints as layered vector SVG: one plate per ink, halftone and dither screens, knockouts, misregistration, motion and pen drawings traced from photographs, rendered as markup in Bun or as a React component, with the pixel work in Rust compiled to WebAssembly.",
   "type": "module",
   "private": false,
   "license": "MIT",
@@ -35,6 +35,10 @@
     "./flags/react": {
       "import": "./dist/flags/react.js",
       "types": "./dist/flags/react.d.ts"
+    },
+    "./sketch": {
+      "import": "./dist/sketch/index.js",
+      "types": "./dist/sketch/index.d.ts"
     }
   },
   "files": [
@@ -55,13 +59,9 @@
     "verify:pack": "bun ./scripts/verify/pack.mjs",
     "verify:overprint": "bun ./scripts/verify/overprint.mjs"
   },
-  "peerDependencies": {
-    "react": ">=18"
-  },
-  "peerDependenciesMeta": {
-    "react": {
-      "optional": true
-    }
+  "dependencies": {
+    "country-flag-icons": "^1.6.20",
+    "roughjs": "^4.6.6"
   },
   "devDependencies": {
     "@package/logger-adapter": "npm:@trebired/logger-adapter@^0.8.2",
@@ -73,6 +73,14 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "typescript": "^6.0.3"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
   },
   "keywords": [
     "overprint",
@@ -94,8 +102,5 @@
   },
   "publishConfig": {
     "access": "public"
-  },
-  "dependencies": {
-    "country-flag-icons": "^1.6.20"
   }
 }

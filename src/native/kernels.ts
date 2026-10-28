@@ -10,6 +10,7 @@ type Kernels = {
   release: () => void;
   reserve: (length: number) => number;
   separate: (width: number, height: number, channel: number) => void;
+  sketch: (width: number, height: number, detail: number, blankSky: number) => void;
   tint: (red: number, green: number, blue: number) => void;
 };
 

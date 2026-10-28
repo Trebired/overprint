@@ -2,6 +2,7 @@ mod channel;
 mod dither;
 mod field;
 mod png;
+mod sketch;
 mod tone;
 
 use std::cell::RefCell;
@@ -69,6 +70,11 @@ pub extern "C" fn separate(width: usize, height: usize, channel: u32) {
 pub extern "C" fn field(width: usize, height: usize, kind: u32, a: f32, b: f32, c: f32, d: f32, low: f32, high: f32) {
     let tone = field::Field { kind, range: [low, high], shape: [a, b, c, d] };
     with_pixels(width * height * 4, |pixels| field::fill(pixels, width, height, &tone));
+}
+
+#[no_mangle]
+pub extern "C" fn sketch(width: usize, height: usize, detail: f32, blank_sky: u32) {
+    with_pixels(width * height * 4, |pixels| sketch::fields(pixels, width, height, detail, blank_sky != 0));
 }
 
 #[no_mangle]

@@ -242,6 +242,38 @@ function verifyFill() {
   check("printLayers names the blend of the paper", layered.blend === "screen");
 }
 
+function scene(width = 160, height = 100) {
+  const data = new Uint8ClampedArray(width * height * 4);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const window = x % 12 < 5 && y % 14 < 7;
+      let rgb = [244, 246, 250];
+      if (y >= 35) rgb = window ? [225, 220, 210] : [80, 76, 72];
+      if (y >= 35 && x > 110) rgb = [60, 110, 50];
+      data.set([...rgb, 255], (y * width + x) * 4);
+    }
+  }
+  return { data, height, width };
+}
+
+async function verifySketch() {
+  const { sketch } = await import(path.join(rootDir, "dist", "sketch", "index.js"));
+  const drawn = sketch(scene());
+  check("sketch returns a standalone svg drawing", drawn.markup.startsWith("<svg") && drawn.markup.includes("<path"), drawn.markup.slice(0, 80));
+  check("sketch keeps the pixel size as its view box", drawn.viewBox === "0 0 160 100" && drawn.width === 160 && drawn.height === 100);
+  check("sketch is deterministic", sketch(scene()).markup === drawn.markup);
+  check("sketch seeds change the hand", sketch(scene(), { seed: 7 }).markup !== drawn.markup);
+  check("sketch strokes in the colour asked", sketch(scene(), { color: "#212121" }).markup.includes('stroke="#212121"'));
+  check("sketch draws the sky when asked", sketch(scene(), { sky: false }).markup !== drawn.markup);
+  let refused = false;
+  try {
+    sketch(scene(), { shading: 3 });
+  } catch {
+    refused = true;
+  }
+  check("sketch refuses an option out of range", refused);
+}
+
 async function verifyReact() {
   const { createElement } = await import("react");
   const { renderToString } = await import("react-dom/server");
@@ -264,6 +296,7 @@ verifyRefusals();
 verifyPng();
 verifyFill();
 await verifyReact();
+await verifySketch();
 
 if (failures.length > 0) {
   for (const failure of failures) log.error("verify.overprint", failure);

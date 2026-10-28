@@ -1,6 +1,6 @@
 # @trebired/overprint
 
-Risograph-style prints as layered vector SVG: one plate per ink, halftone and dither screens, knockouts, misregistration and motion, rendered to markup in Bun or as a React component, with the pixel work in Rust compiled to WebAssembly.
+Risograph-style prints as layered vector SVG: one plate per ink, halftone and dither screens, knockouts, misregistration, motion and pen drawings traced from photographs, rendered to markup in Bun or as a React component, with the pixel work in Rust compiled to WebAssembly.
 
 The package owns the print: turning a tone into ink, screening it into dots or grain, cutting one plate out of another, overprinting the plates the way a stencil duplicator does, and moving them once the page is live. Callers own the artwork each plate prints through, the inks, the element the print sits in and its size, and when it is rendered. The package does not own a canvas, a scene graph, an image loader, layout measurement, or any styling of the element around the print.
 
@@ -131,6 +131,16 @@ Error diffusion cannot be expressed as vector shapes. Those screens are computed
 
 `<Flag code="CZ" />` from `@trebired/overprint/flags/react` renders the print and waves it after mount. `pole` adds a printed pole about two and a half times the cloth's height, with the cloth hanging from the middle of its shaft, `wave={false}` keeps it still, and `wave` takes the `waveFlag` options. `polePrint(paper)` is the pole as a print on its own.
 
+### Sketches
+
+`@trebired/overprint/sketch` turns a photograph into a pen drawing. `sketch(pixels)` takes decoded pixels and returns `{ markup, viewBox, width, height }`: a standalone SVG of strokes on a transparent ground, at the pixels' own size. Save it as a file and show it as an image, or print it through `{ kind: "image", href }` art like any other drawing.
+
+The pixel work runs in the Rust kernels: a Canny edge pass finds the outlines, a flood from the top edge finds the sky, a smoothed luminance becomes the shading, and green, darker areas are marked as foliage. The strokes are drawn with [Rough.js](https://roughjs.com) at a low roughness, so the lines are steady and only slightly uneven. Outlines are traced and simplified into straight runs, heavier for long silhouettes and lighter for detail. Shading is hatched in short strokes, one direction for the mid tones and crossed for the darks, and lit surfaces stay white. Foliage is drawn as small leaf clusters instead of hatching. The sky is left blank and isolated marks shorter than ten pixels are dropped, so a bird or a speck of dust never becomes a stroke.
+
+`detail` (0 to 1, 0.5 by default) sets how many edges become lines, `shading` (0 to 2, 1 by default) how much of the tone is hatched, `roughness` the hand (0.55), `stroke` the outline width in pixels (1.1), `seed` the hand's variation, `color` the stroke colour as `#rgb` or `#rrggbb` (black by default), `sky: false` draws the sky like everything else, and `foliage: false` hatches greenery as tone. The same pixels and options always produce the same drawing. A drawing 1600 pixels wide takes about half a second and about 400 KB of markup, which compresses well.
+
+Browsers do not crop an SVG image by its `fit`, so print a sketch in a box with the drawing's own aspect ratio and crop the box instead.
+
 ## Runtime
 
 ### Rendering
@@ -168,6 +178,8 @@ Fills: `printFill`, `printFillCss`, `printLayers`.
 React (`@trebired/overprint/react`): `Overprint`.
 
 Flags (`@trebired/overprint/flags`): `flagPrint`, `waveFlag`, `polePrint`, `flagMarkup`, `FLAG_CODES`; React (`@trebired/overprint/flags/react`): `Flag`.
+
+Sketches (`@trebired/overprint/sketch`): `sketch`, with the types `Sketch` and `SketchOptions`.
 
 Motion: `animatePrint`.
 

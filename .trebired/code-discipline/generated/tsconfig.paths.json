@@ -7,6 +7,9 @@
       "#1l1k8s5qpbfx": [
         "../../../src/motion/clock.ts"
       ],
+      "#1l8pygi7ucr5": [
+        "../../../src/sketch/strokes.ts"
+      ],
       "#20ins765q947": [
         "../../../src/svg/tone.ts"
       ],
@@ -19,11 +22,17 @@
       "#3yrjkslelthn": [
         "../../../src/flags/separate.ts"
       ],
+      "#4cjd5tirr008": [
+        "../../../src/sketch/fields.ts"
+      ],
       "#4sypdl6c2rxc": [
         "../../../src/svg/bayer.ts"
       ],
       "#68pel9bie3h6": [
         "../../../src/svg/registration.ts"
+      ],
+      "#7he3pnq50ks1": [
+        "../../../src/sketch/trace.ts"
       ],
       "#7vcgijuwatpl": [
         "../../../src/flags/index.ts"
@@ -87,6 +96,9 @@
       ],
       "#p5vir3hdc0co": [
         "../../../scripts/prepare-dist.mjs"
+      ],
+      "#rl6wrednet4b": [
+        "../../../src/sketch/index.ts"
       ],
       "#sjsiregq0kos": [
         "../../../src/index.ts"
