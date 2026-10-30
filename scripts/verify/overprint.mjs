@@ -285,6 +285,23 @@ async function verifyReact() {
   check("react inlines the root isolation", markup.includes("isolation:isolate"));
 }
 
+function verifyTouchStill() {
+  const layer = { paused: 0, pauseAnimations() { this.paused++; }, style: {}, tagName: "svg" };
+  const scope = globalThis;
+  const saved = { raf: scope.requestAnimationFrame, window: scope.window };
+  scope.window = { matchMedia: (query) => ({ matches: query === "(hover: none)" }) };
+  scope.requestAnimationFrame = () => 0;
+  const stop = overprint.animatePrint(
+    { children: [layer] },
+    { paper: "dark", plates: [{ art: { kind: "fill" }, motion: { drift: 6, pull: 6 } }], size: [10, 10] }
+  );
+  scope.window = saved.window;
+  scope.requestAnimationFrame = saved.raf;
+  stop();
+  check("a touch device holds a print still", layer.paused === 1 && !layer.style.transform);
+  check("a touch device keeps a print off its own layers", !layer.style.willChange);
+}
+
 await overprint.prepareKernels();
 verifyInks();
 verifyCoverage();
@@ -297,6 +314,7 @@ verifyPng();
 verifyFill();
 await verifyReact();
 await verifySketch();
+verifyTouchStill();
 
 if (failures.length > 0) {
   for (const failure of failures) log.error("verify.overprint", failure);

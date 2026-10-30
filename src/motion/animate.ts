@@ -96,10 +96,18 @@ function tickerOf(root: Element, layers: Layer[], moving: Layer[], motion: Motio
   };
 }
 
+function touchOnly(): boolean {
+  return Boolean(window.matchMedia?.("(hover: none)").matches);
+}
+
 function animatePrint(root: Element | null, print: Print, options: AnimateOptions = {}): () => void {
   if (!root || typeof window === "undefined" || typeof requestAnimationFrame === "undefined") return () => undefined;
   if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return () => undefined;
   const layers = layersOf(root, print);
+  if (touchOnly()) {
+    layers.forEach(({ element }) => playSvg(element, false));
+    return () => undefined;
+  }
   const moving = layers.filter((layer) => pullOf(layer.plate, options) !== 0 || driftOf(layer.plate, options) !== 0);
   if (moving.length === 0 && !layers.some((layer) => layer.plate.wave)) return () => undefined;
   const motion: Motion = {
