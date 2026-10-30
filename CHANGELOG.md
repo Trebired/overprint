@@ -4,6 +4,10 @@ All notable changes to `@trebired/overprint` will be documented here.
 
 This project follows semantic versioning once published.
 
+## 0.8.0
+
+- Changed `animatePrint()` to leave a print still on a device whose main input cannot hover, `(hover: none)`, such as a phone or a tablet. Drift and wave are paused and no plate is promoted to its own layer with `will-change`, so a print is painted once and scrolling stays on the compositor. Plates moved ten times a second on one GPU layer each, which is what made prints stutter on a phone. Devices with a mouse or a pen move as before.
+
 ## 0.7.0
 
 - Added `@trebired/overprint/sketch`. `sketch(pixels)` turns a photograph into a pen drawing as standalone SVG: outlines traced from its edges, hatching for its shading, leaf clusters for greenery and a blank sky, drawn with Rough.js at a low roughness so the lines read as a steady hand. The edge, sky, tone and foliage passes run in the Rust kernels. `detail`, `shading`, `roughness`, `stroke`, `seed`, `color`, `sky` and `foliage` tune it, and the same input always draws the same picture.
