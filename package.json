@@ -36,6 +36,10 @@
       "import": "./dist/flags/react.js",
       "types": "./dist/flags/react.d.ts"
     },
+    "./grain": {
+      "import": "./dist/grain/index.js",
+      "types": "./dist/grain/index.d.ts"
+    },
     "./sketch": {
       "import": "./dist/sketch/index.js",
       "types": "./dist/sketch/index.d.ts"

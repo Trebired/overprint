@@ -38,4 +38,10 @@ function inkFilter(id: string, texture: number | undefined, region: Region): Ove
   ]);
 }
 
-export { DEFAULT_TEXTURE, inkFilter, MIN_TEXTURE };
+function flatFilter(id: string, region: Region): OverprintNode {
+  return el("filter", { ...region, "color-interpolation-filters": "sRGB", filterUnits: "userSpaceOnUse", id }, [
+      el("feColorMatrix", { in: "SourceGraphic", type: "matrix", values: WHITE }),
+  ]);
+}
+
+export { DEFAULT_TEXTURE, flatFilter, inkFilter, MIN_TEXTURE };

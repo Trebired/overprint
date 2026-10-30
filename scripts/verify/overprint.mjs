@@ -6,6 +6,7 @@ const log = resolveLogger({ source: "@trebired/overprint" });
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const overprint = await import(path.join(rootDir, "dist", "index.js"));
+const { printGrainCss } = await import(path.join(rootDir, "dist", "grain", "index.js"));
 
 const failures = [];
 
@@ -285,6 +286,19 @@ async function verifyReact() {
   check("react inlines the root isolation", markup.includes("isolation:isolate"));
 }
 
+function verifyTouchInk() {
+  const markup = overprint.renderPrint(
+    { paper: "dark", plates: [{ art: { kind: "fill" }, ink: "#336" }, { art: { kind: "fill" }, ink: "#633" }], size: [10, 10] },
+    { id: "t" }
+  );
+  const grain = printGrainCss();
+  check("a touch device drops the live ink", markup.includes("data-ink") && grain.endsWith("[data-ink]{filter:none}}"));
+  check("the art stays white under a flat filter", markup.includes('filter="url(#t-0f)"'));
+  check("a print marks its root for the grain", markup.includes("data-overprint"));
+  check("the grain is one image behind the touch media query", grain.startsWith("@media (hover: none){[data-overprint]{mask:url(\"data:image/png"));
+  check("the grain stays light enough for a stylesheet", grain.length < 32000);
+}
+
 function verifyTouchStill() {
   const layer = { paused: 0, pauseAnimations() { this.paused++; }, style: {}, tagName: "svg" };
   const scope = globalThis;
@@ -315,6 +329,7 @@ verifyFill();
 await verifyReact();
 await verifySketch();
 verifyTouchStill();
+verifyTouchInk();
 
 if (failures.length > 0) {
   for (const failure of failures) log.error("verify.overprint", failure);

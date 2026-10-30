@@ -51,7 +51,7 @@ function Overprint({ as = "span", className, motion, print, style }: OverprintPr
 
   useEffect(() => (motion === false ? undefined : animatePrint(root.current, print, motion)), [motion, print]);
 
-  return createElement(as, { "aria-hidden": true, className, ref: root, style: { isolation: "isolate", ...style } }, plates);
+  return createElement(as, { "aria-hidden": true, className, "data-overprint": "", ref: root, style: { isolation: "isolate", ...style } }, plates);
 }
 
 export { Overprint };

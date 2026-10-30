@@ -63,7 +63,8 @@ function plateNodes(print: Print, id: string, options: PlateOptions = {}): Overp
 
 function printTree(print: Print, options: PrintOptions = {}): OverprintNode {
   const style = ["isolation:isolate", options.style].filter(Boolean).join(";");
-  return el(options.tag || "span", { "aria-hidden": "true", class: options.className, style }, plateNodes(print, idOf(options.id), { share: true }));
+  const attrs = { "aria-hidden": "true", class: options.className, "data-overprint": "", style };
+  return el(options.tag || "span", attrs, plateNodes(print, idOf(options.id), { share: true }));
 }
 
 function renderPrint(print: Print, options: PrintOptions = {}): string {

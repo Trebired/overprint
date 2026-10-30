@@ -1,6 +1,6 @@
 import { inkOf } from "./../inks.js";
 import { artNode } from "./art.js";
-import { inkFilter } from "./ink.js";
+import { flatFilter, inkFilter } from "./ink.js";
 import { el, round, type OverprintNode } from "./node.js";
 import { registeredShift } from "./registration.js";
 import { plateReach, regionOf, type Region } from "./region.js";
@@ -41,10 +41,10 @@ function maskOf(plate: Plate, context: PlateContext, reach: Bounds | null): Over
       return { filter: silhouette(`${id}k${index}`, BLACK, grown, knock.spread), node };
   });
   const mask = el("mask", { ...region, id: `${id}m`, maskUnits: "userSpaceOnUse" }, [
-      el("g", { filter: `url(#${id}a)` }, [artOf(plate.art, context)]),
+      el("g", { "data-ink": "", filter: `url(#${id}a)` }, [el("g", { filter: `url(#${id}f)` }, [artOf(plate.art, context)])]),
       ...knocks.map((knock) => knock.node),
   ]);
-  return [inkFilter(`${id}a`, plate.texture, region), ...knocks.map((knock) => knock.filter), mask];
+  return [inkFilter(`${id}a`, plate.texture, region), flatFilter(`${id}f`, region), ...knocks.map((knock) => knock.filter), mask];
 }
 
 function blendOf(plate: Plate, paper: Paper): "multiply" | "normal" | "screen" {
