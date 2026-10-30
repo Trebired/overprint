@@ -4,6 +4,12 @@ All notable changes to `@trebired/overprint` will be documented here.
 
 This project follows semantic versioning once published.
 
+## 0.9.0
+
+- Added `@trebired/overprint/grain`. `printGrainCss()` returns CSS for a site's stylesheet that, on a device whose main input cannot hover, `(hover: none)`, drops the live ink texture and masks each print with one shared grain image. Computing noise for every new tile took about 65 % of the raster time while scrolling on a phone. The rough plate edges stay desktop only.
+- Added `data-overprint` to a print's root and `data-ink` to the group that carries its ink filter.
+- Changed each plate to carry a flat white filter inside its ink filter, so its art stays white in the mask when the ink filter is off.
+
 ## 0.8.0
 
 - Changed `animatePrint()` to leave a print still on a device whose main input cannot hover, `(hover: none)`, such as a phone or a tablet. Drift and wave are paused and no plate is promoted to its own layer with `will-change`, so a print is painted once and scrolling stays on the compositor. Plates moved ten times a second on one GPU layer each, which is what made prints stutter on a phone. Devices with a mouse or a pen move as before.
