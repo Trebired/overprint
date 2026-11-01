@@ -4,6 +4,10 @@ All notable changes to `@trebired/overprint` will be documented here.
 
 This project follows semantic versioning once published.
 
+## 0.9.1
+
+- Moved the repository's own Code Discipline config to `@trebired/code-discipline` 8 and the named preset `@trebired/configs/code-discipline/preset_01` from `@trebired/configs` 0.6.0.
+
 ## 0.9.0
 
 - Added `@trebired/overprint/grain`. `printGrainCss()` returns CSS for a site's stylesheet that, on a device whose main input cannot hover, `(hover: none)`, drops the live ink texture and masks each print with one shared grain image. Computing noise for every new tile took about 65 % of the raster time while scrolling on a phone. The rough plate edges stay desktop only.
