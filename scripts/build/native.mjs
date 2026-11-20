@@ -30,5 +30,7 @@ async function embed() {
 }
 
 compile();
+
 const size = await embed();
+
 process.stdout.write(`native kernels: ${size} bytes embedded into dist/native/kernels.js\n`);
